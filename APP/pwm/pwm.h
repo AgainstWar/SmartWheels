@@ -1,8 +1,8 @@
 #ifndef _pwm_H
 #define _pwm_H
 
-#include "system.h"
-
-void TIM3_CH2_PWM_Init(u16 per,u16 psc);
+#include "stm32f10x.h"
+void PWM_Init(void);
+void PWM_SetDutyCycle(u16 channel, u16 duty);
 
 #endif

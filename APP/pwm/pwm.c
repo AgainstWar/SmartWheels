@@ -1,47 +1,109 @@
-#include "pwm.h"
+#include <pwm.h>
 
-/*******************************************************************************
-* º¯ Êý Ãû         : TIM3_CH2_PWM_Init
-* º¯Êý¹¦ÄÜ		   : TIM3Í¨µÀ2 PWM³õÊ¼»¯º¯Êý
-* Êä    Èë         : per:ÖØ×°ÔØÖµ
-					 psc:·ÖÆµÏµÊý
-* Êä    ³ö         : ÎÞ
-*******************************************************************************/
-void TIM3_CH2_PWM_Init(u16 per,u16 psc)
+static void GPIO_Configuration(void);
+static void TIM3_Configuration(void);
+
+/*
+ * åˆå§‹åŒ–PWM
+ * @param void
+ * @note åˆå§‹åŒ–TIM3çš„CH1-4é€šé“ï¼Œå¯¹åº”PA6ã€PA7ã€PA0ã€PA1
+ * @returns void
+ */
+void PWM_Init(void)
 {
-	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
-	TIM_OCInitTypeDef TIM_OCInitStructure;
-	GPIO_InitTypeDef GPIO_InitStructure;
-	
-	/* ¿ªÆôÊ±ÖÓ */
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB,ENABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3,ENABLE);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO,ENABLE);
-	
-	/*  ÅäÖÃGPIOµÄÄ£Ê½ºÍIO¿Ú */
-	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_5;
-	GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode=GPIO_Mode_AF_PP;//¸´ÓÃÍÆÍìÊä³ö
-	GPIO_Init(GPIOB,&GPIO_InitStructure);
-	
-	GPIO_PinRemapConfig(GPIO_PartialRemap_TIM3,ENABLE);//¸Ä±äÖ¸¶¨¹Ü½ÅµÄÓ³Éä	
-	
-	TIM_TimeBaseInitStructure.TIM_Period=per;   //×Ô¶¯×°ÔØÖµ
-	TIM_TimeBaseInitStructure.TIM_Prescaler=psc; //·ÖÆµÏµÊý
-	TIM_TimeBaseInitStructure.TIM_ClockDivision=TIM_CKD_DIV1;
-	TIM_TimeBaseInitStructure.TIM_CounterMode=TIM_CounterMode_Up; //ÉèÖÃÏòÉÏ¼ÆÊýÄ£Ê½
-	TIM_TimeBaseInit(TIM3,&TIM_TimeBaseInitStructure);	
-	
-	TIM_OCInitStructure.TIM_OCMode=TIM_OCMode_PWM1;
-	TIM_OCInitStructure.TIM_OCPolarity=TIM_OCPolarity_Low;
-	TIM_OCInitStructure.TIM_OutputState=TIM_OutputState_Enable;
-	TIM_OC2Init(TIM3,&TIM_OCInitStructure); //Êä³ö±È½ÏÍ¨µÀ2³õÊ¼»¯
-	
-	TIM_OC2PreloadConfig(TIM3,TIM_OCPreload_Enable); //Ê¹ÄÜTIMxÔÚ CCR2 ÉÏµÄÔ¤×°ÔØ¼Ä´æÆ÷
-	TIM_ARRPreloadConfig(TIM3,ENABLE);//Ê¹ÄÜÔ¤×°ÔØ¼Ä´æÆ÷
-	
-	TIM_Cmd(TIM3,ENABLE); //Ê¹ÄÜ¶¨Ê±Æ÷
-		
+    GPIO_Configuration();
+    TIM3_Configuration();
+    PWM_SetDutyCycle(1, 0);
+    PWM_SetDutyCycle(2, 0);
+    PWM_SetDutyCycle(3, 0);
+    PWM_SetDutyCycle(4, 0);
 }
 
+static void GPIO_Configuration(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
 
+    // å¼€å¯GPIOAçš„æ—¶é’Ÿ
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+    // è®¾ç½®GPIOä¸ºå¤ç”¨æŽ¨æŒ½è¾“å‡º
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7; // æŸ¥è¯¢æ•°æ®æ‰‹å†Œï¼Œéžé‡æ˜ å°„TIM3 CH1-2å¯¹åº”PA6å’ŒPA7
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1; // æŸ¥è¯¢æ•°æ®æ‰‹å†Œï¼Œéžé‡æ˜ å°„TIM3 CH3-4å¯¹åº”PA0å’ŒPA1
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
+static void TIM3_Configuration(void)
+{
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    TIM_OCInitTypeDef TIM_OCInitStructure;
+
+    // TIM3çš„æ—¶é’Ÿä½¿èƒ½
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+
+    // å®šæ—¶å™¨åŸºæœ¬é…ç½®
+    TIM_TimeBaseStructure.TIM_Period = 999;
+    TIM_TimeBaseStructure.TIM_Prescaler = 71;
+    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+
+    // PWMæ¨¡å¼é…ç½®
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+    TIM_OCInitStructure.TIM_Pulse = 50; // åˆå§‹å ç©ºæ¯”0%
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+
+    // åˆå§‹åŒ–TIM3çš„Channel1
+    TIM_OC1Init(TIM3, &TIM_OCInitStructure);
+    TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
+
+    // åˆå§‹åŒ–TIM3çš„Channel2
+    TIM_OC2Init(TIM3, &TIM_OCInitStructure);
+    TIM_OC2PreloadConfig(TIM3, TIM_OCPreload_Enable);
+
+    // åˆå§‹åŒ–TIM3çš„Channel3
+    TIM_OC3Init(TIM3, &TIM_OCInitStructure);
+    TIM_OC3PreloadConfig(TIM3, TIM_OCPreload_Enable);
+
+    // åˆå§‹åŒ–TIM3çš„Channel4
+    TIM_OC4Init(TIM3, &TIM_OCInitStructure);
+    TIM_OC4PreloadConfig(TIM3, TIM_OCPreload_Enable);
+
+    // å¯åŠ¨TIM3
+    TIM_Cmd(TIM3, ENABLE);
+}
+
+/*
+ * è®¾ç½®PWMçš„å ç©ºæ¯”
+ * @param channel PWMé€šé“ 1-4
+ * @param duty å ç©ºæ¯” %0-100
+ * @returns void
+ */
+void PWM_SetDutyCycle(u16 channel, u16 duty)
+{
+    duty = duty * 10;
+    duty = duty > 1000 ? 1000 : duty;
+    duty = duty < 0 ? 0 : duty;
+
+    switch (channel)
+    {
+    case 1:
+        TIM_SetCompare1(TIM3, duty);
+        break;
+    case 2:
+        TIM_SetCompare2(TIM3, duty);
+        break;
+    case 3:
+        TIM_SetCompare3(TIM3, duty);
+        break;
+    case 4:
+        TIM_SetCompare4(TIM3, duty);
+        break;
+    default:
+        break;
+    }
+}
