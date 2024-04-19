@@ -23,8 +23,9 @@ static void GPIO_Configuration(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
 
-    // 开启GPIOA的时钟
+    // 开启GPIOA|B的时钟
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
     // 设置GPIO为复用推挽输出
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7; // 查询数据手册，非重映射TIM3 CH1-2对应PA6和PA7
@@ -32,7 +33,7 @@ static void GPIO_Configuration(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1; // 查询数据手册，非重映射TIM3 CH3-4对应PA0和PA1
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1; // 查询数据手册，非重映射TIM3 CH3-4对应PB0和PB1
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 

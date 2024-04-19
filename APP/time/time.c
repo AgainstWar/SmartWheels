@@ -1,48 +1,64 @@
 #include "time.h"
 
-/*******************************************************************************
-* 函 数 名         : TIM4_Init
-* 函数功能		   : TIM4初始化函数
-* 输    入         : per:重装载值
-					 psc:分频系数
-* 输    出         : 无
-*******************************************************************************/
-void TIM4_Init(u16 per, u16 psc)
+u16 counter = 0;
+
+
+void NVIC_Configuration(void)
 {
-	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE); // 使能TIM4时钟
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	   // 设置NVIC中断分组0
+	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;	   // 定时器中断通道
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; // 子优先级
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // IRQ通道使能
 
-	TIM_TimeBaseInitStructure.TIM_Period = per;	   // 自动装载值
-	TIM_TimeBaseInitStructure.TIM_Prescaler = psc; // 分频系数
-	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up; // 设置向上计数模式
-	TIM_TimeBaseInit(TIM4, &TIM_TimeBaseInitStructure);
-
-	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE); // 开启定时器中断
-	TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-
-	NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;			  // 定时器中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2; // 抢占优先级
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;		  // 子优先级
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  // IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);
-
-	TIM_Cmd(TIM4, ENABLE); // 使能定时器
 }
 
-/*******************************************************************************
- * 函 数 名         : TIM4_IRQHandler
- * 函数功能		   : TIM4中断函数
- * 输    入         : 无
- * 输    出         : 无
- *******************************************************************************/
-void TIM4_IRQHandler(void)
+/*
+ * TIM2初始化
+ * @param void
+ * @note 更新频率计算公式= 72Mhz/((per+1)*(psc+1))
+ * @returns void
+ */
+void TIM2_Init(u16 per, u16 psc) // 1ms: per=999,psc=71
 {
-	if (TIM_GetITStatus(TIM4, TIM_IT_Update))
+
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE); // 使能TIM4时钟
+	TIM_DeInit(TIM2);									 // 复位TIM4
+
+	TIM_TimeBaseInitStructure.TIM_Period = per;						// 自动装载值
+	TIM_TimeBaseInitStructure.TIM_Prescaler = psc;					// 分频系数 71-1kHz 35-2kHz
+	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up; // 设置向上计数模式
+
+	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);
+	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE); // 开启定时器中断
+	TIM_Cmd(TIM2, ENABLE);					   // 使能定时器
+	NVIC_Configuration();
+}
+
+void TIM2_IRQHandler(void)
+{
+	if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET)
 	{
-		LED2 = !LED2;
+		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+
+		counter++;
+		if (counter >= 1000)
+		{
+			counter = 0; // 清零计数器
+			// 计算速度
+			speed[0] = (Encode_Value[0] / code_disc) * 3.14 * diameter;
+			speed[1] = (Encode_Value[1] / code_disc) * 3.14 * diameter;
+			speed[2] = (Encode_Value[2] / code_disc) * 3.14 * diameter;
+			speed[3] = (Encode_Value[3] / code_disc) * 3.14 * diameter;
+
+			Encode_Value[0] = 0;
+			Encode_Value[1] = 0;
+			Encode_Value[2] = 0;
+			Encode_Value[3] = 0;
+		}
 	}
-	TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
 }
