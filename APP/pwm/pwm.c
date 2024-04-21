@@ -6,7 +6,7 @@ static void TIM3_Configuration(void);
 /**
  * @brief 初始化PWM
  * @param void
- * @note 初始化TIM3的CH1-4通道，对应PA6、PA7、PA0、PA1
+ * @note 初始化TIM3的CH1-4通道，对应PA6、PA7、PB0、PB1
  * @returns void
  */
 void PWM_Init(void)

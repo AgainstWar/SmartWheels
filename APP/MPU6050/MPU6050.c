@@ -2,6 +2,7 @@
 #include "MPU6050.h"
 #include "SysTick.h"
 
+int8_t Zero_Drift;
 int16_t mpu6050_gyro_x, mpu6050_gyro_y, mpu6050_gyro_z;
 int16_t mpu6050_acc_x, mpu6050_acc_y, mpu6050_acc_z;
 
@@ -13,6 +14,9 @@ int16_t mpu6050_acc_x, mpu6050_acc_y, mpu6050_acc_z;
 
 #define ack 1    // 主应答
 #define no_ack 0 // 从应答
+
+void MPU6050_Z_Zero_Drift_Calculation(void);
+
 
 /**
  * @brief   模拟IIC初始化
@@ -256,10 +260,11 @@ uint8_t mpu6050_init(void)
     mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, PWR_MGMT_1, 0x00);     // 解除休眠状态
     mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, SMPLRT_DIV, 0x07);     // 125HZ采样率
     mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, MPU6050_CONFIG, 0x04); //
-    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, GYRO_CONFIG, 0x18);    // 2000
-    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, ACCEL_CONFIG, 0x10);   // 8g
+    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, GYRO_CONFIG, 0x18);    // 角速度满量程±2000dps
+    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, ACCEL_CONFIG, 0x10);   // 加速度量程±8g
     mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, User_Control, 0x00);
     mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, INT_PIN_CFG, 0x02);
+    MPU6050_Z_Zero_Drift_Calculation();                                //Z轴零漂计算
     return 0;
 }
 
@@ -294,3 +299,25 @@ void mpu6050_get_gyro(void)
     mpu6050_gyro_y = (int16_t)(((uint16_t)dat[2] << 8 | dat[3]));
     mpu6050_gyro_z = (int16_t)(((uint16_t)dat[4] << 8 | dat[5]));
 }
+
+
+
+/**
+ *  @brief      计算MPU6050 Z轴零漂
+ *  @param      NULL
+ *  @return     void
+ *  @note       函数调用于初始化中，上电即计算零漂值，并于后续抑制
+*/
+void MPU6050_Z_Zero_Drift_Calculation(void)
+{
+    uint8_t i=0;
+    for(i=0;i<150;i++)
+    {
+       mpu6050_get_gyro();
+       Zero_Drift+=mpu6050_gyro_z;
+       delay_ms(2);
+    }
+    Zero_Drift/=150;
+   
+}
+

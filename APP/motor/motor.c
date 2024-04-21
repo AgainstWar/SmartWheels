@@ -15,13 +15,15 @@ void Motor_Init(void)
     GPIO_InitTypeDef GPIO_InitStructure;
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3
+                                | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOD, &GPIO_InitStructure);
 
     // 初始化电机驱动端口
-    GPIO_ResetBits(GPIOD, GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3);
+    GPIO_ResetBits(GPIOD, GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3
+                        | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7);
 
     // 初始化PWM
     PWM_Init();
@@ -39,7 +41,7 @@ void Motor_Init(void)
 
 /**
  * @brief 设置电机速度
- * @param motor 电机编号 0-4
+ * @param motor 电机编号 0-3
  * @param speed 电机速度 0-100
  * @note 电机速度为0-100，0为停止，100为最大速度
  */
@@ -65,7 +67,7 @@ void Motor_Speed(u8 motor, u16 speed)
 
 /**
  * @brief 设置电机方向
- * @param motor 电机编号 0-4
+ * @param motor 电机编号 0-3
  * @param direction 电机转动方向 1为正转，0为反转
  * @note 电机方向设置成功后，会自动设置上次的电机速度
  */
@@ -81,33 +83,42 @@ void Motor_SetDirection(u8 motor, u8 direction)
     case 0:
     {
         if (direction == 0)
-            GPIO_SetBits(GPIOD, GPIO_Pin_0);
+            GPIO_SetBits(GPIOD, GPIO_Pin_1),
+            GPIO_ResetBits(GPIOD,GPIO_Pin_0);
         if (direction == 1)
-            GPIO_ResetBits(GPIOD, GPIO_Pin_0);
+            GPIO_SetBits(GPIOD,GPIO_Pin_0),
+            GPIO_ResetBits(GPIOD, GPIO_Pin_1);
+            
     }
     break;
     case 1:
     {
         if (direction == 0)
-            GPIO_SetBits(GPIOD, GPIO_Pin_1);
+            GPIO_SetBits(GPIOD, GPIO_Pin_3),
+            GPIO_ResetBits(GPIOD,GPIO_Pin_2);
         if (direction == 1)
-            GPIO_ResetBits(GPIOD, GPIO_Pin_1);
+            GPIO_ResetBits(GPIOD, GPIO_Pin_3),
+            GPIO_SetBits(GPIOD,GPIO_Pin_2);
     }
     break;
     case 2:
     {
         if (direction == 0)
-            GPIO_SetBits(GPIOD, GPIO_Pin_2);
+            GPIO_SetBits(GPIOD, GPIO_Pin_5),
+            GPIO_ResetBits(GPIOD,GPIO_Pin_4);
         if (direction == 1)
-            GPIO_ResetBits(GPIOD, GPIO_Pin_2);
+            GPIO_ResetBits(GPIOD, GPIO_Pin_5),
+            GPIO_SetBits(GPIOD,GPIO_Pin_4);
     }
     break;
     case 3:
     {
         if (direction == 0)
-            GPIO_SetBits(GPIOD, GPIO_Pin_3);
+            GPIO_SetBits(GPIOD, GPIO_Pin_7),
+            GPIO_ResetBits(GPIOD,GPIO_Pin_6);
         if (direction == 1)
-            GPIO_ResetBits(GPIOD, GPIO_Pin_3);
+            GPIO_ResetBits(GPIOD, GPIO_Pin_7),
+            GPIO_SetBits(GPIOD,GPIO_Pin_6);
     }
     break;
     default:

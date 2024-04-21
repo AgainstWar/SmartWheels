@@ -37,6 +37,7 @@
 
 extern int16_t mpu6050_gyro_x,mpu6050_gyro_y,mpu6050_gyro_z;    //角速度变量
 extern int16_t mpu6050_acc_x,mpu6050_acc_y,mpu6050_acc_z;       //加速度变量
+extern int8_t Zero_Drift;
 
 uint8_t  mpu6050_init(void);               //初始化MPU6050
 void   mpu6050_get_accdata(void);          //获取加速度数据
