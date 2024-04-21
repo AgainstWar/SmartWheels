@@ -2,8 +2,8 @@
 u8 Direction[4] = {1, 1, 1, 1};
 u8 Last_Speed[4] = {0, 0, 0, 0};
 
-/*
- * 初始化电机
+/**
+ * @brief 初始化电机
  * @param void
  * @note 电机驱动端口INT1/3 均设置为低电平
  * @returns void
@@ -37,8 +37,8 @@ void Motor_Init(void)
     Motor_Speed(3, 0);
 }
 
-/*
- * 设置电机速度
+/**
+ * @brief 设置电机速度
  * @param motor 电机编号 0-4
  * @param speed 电机速度 0-100
  * @note 电机速度为0-100，0为停止，100为最大速度
@@ -63,8 +63,8 @@ void Motor_Speed(u8 motor, u16 speed)
     }
 }
 
-/*
- * 设置电机方向
+/**
+ * @brief 设置电机方向
  * @param motor 电机编号 0-4
  * @param direction 电机转动方向 1为正转，0为反转
  * @note 电机方向设置成功后，会自动设置上次的电机速度

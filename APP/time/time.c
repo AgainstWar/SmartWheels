@@ -2,7 +2,6 @@
 
 u16 counter = 0;
 
-
 void NVIC_Configuration(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
@@ -15,8 +14,8 @@ void NVIC_Configuration(void)
 	NVIC_Init(&NVIC_InitStructure);
 }
 
-/*
- * TIM2初始化
+/**
+ * @brief 定时器2初始化
  * @param void
  * @note 更新频率计算公式= 72Mhz/((per+1)*(psc+1))
  * @returns void

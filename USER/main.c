@@ -4,6 +4,7 @@
 #include "SysTick.h"
 #include "exti.h"
 #include "time.h"
+#include "MPU6050.h"
 void delay(u32 nms);
 
 int main(void)
@@ -12,6 +13,7 @@ int main(void)
 	SYSTEM_EXTI_Init();
 	TIM2_Init(999, 71);
 	Encode_Init();
+	mpu6050_init();
 	while (1)
 	{
 		// Motor Test

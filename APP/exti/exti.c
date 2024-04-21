@@ -2,8 +2,8 @@
 
 static void GPIO_Configuration(void);
 
-/*
- * 初始化外部中断
+/**
+ * @brief 初始化外部中断
  * @param void
  * @note 初始化PD0-3为外部中断
  * @returns void
@@ -69,8 +69,8 @@ static void GPIO_Configuration(void)
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
-/*
- * 外部中断1函数
+/**
+ * @brief 外部中断1函数
  * @param void
  * @returns void
  */
@@ -83,8 +83,8 @@ void EXTI1_IRQHandler(void)
 	EXTI_ClearITPendingBit(EXTI_Line1);
 }
 
-/*
- * 外部中断2函数
+/**
+ * @brief 外部中断2函数
  * @param void
  * @returns void
  */
@@ -97,8 +97,8 @@ void EXTI2_IRQHandler(void)
 	EXTI_ClearITPendingBit(EXTI_Line2);
 }
 
-/*
- * 外部中断3函数
+/**
+ * @brief 外部中断3函数
  * @param void
  * @returns void
  */
@@ -111,8 +111,8 @@ void EXTI3_IRQHandler(void)
 	EXTI_ClearITPendingBit(EXTI_Line3);
 }
 
-/*
- * 外部中断4函数
+/**
+ * @brief 外部中断4函数
  * @param void
  * @returns void
  */
