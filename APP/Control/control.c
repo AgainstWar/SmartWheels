@@ -1,62 +1,59 @@
 #include <control.h>
 
 float angle = 0;
-float GyroZ_last,GyroZ;
-uint8_t turnleft_flag=0,turnright_flag=0;//½ÓÊÕµ½µÄ×ªÏò±êÖ¾Î»
+float GyroZ_last, GyroZ;
+uint8_t turnleft_flag = 0, turnright_flag = 0; // æ¥æ”¶åˆ°çš„è½¬å‘æ ‡å¿—ä½
 
 /**
- * @brief   MPU6050 ZÖá½ÇËÙ¶È´¦Àí
+ * @brief   MPU6050 Zè½´è§’é€Ÿåº¦å¤„ç†
  * @param   void
- * @note    ÒÖÖÆÁãÆ¯£¬½«½ÇËÙ¶È×ª»»ÎªÊµ¼ÊÎïÀíÖµ
+ * @note    æŠ‘åˆ¶é›¶æ¼‚ï¼Œå°†è§’é€Ÿåº¦è½¬æ¢ä¸ºå®é™…ç‰©ç†å€¼
  * @return  void
-*/
+ */
 void MPU6050_data_processing(void)
 {
     GyroZ_last = GyroZ;
-    GyroZ = (mpu6050_gyro_z - Zero_Drift)/16.4;
-    GyroZ = GyroZ*0.9 + GyroZ_last*0.1;
+    GyroZ = (mpu6050_gyro_z - Zero_Drift) / 16.4;
+    GyroZ = GyroZ * 0.9 + GyroZ_last * 0.1;
 }
 
-
-
 /**
- * @brief   Ô­µØ×ó×ª90¡ã
+ * @brief   åŸåœ°å·¦è½¬90Â°
  * @param   void
- * @note    ÓÒÂÖÕı×ª£¬×óÂÖ·´×ª
+ * @note    å³è½®æ­£è½¬ï¼Œå·¦è½®åè½¬
  * @return  void
-*/
+ */
 void Turn_left(void)
 {
 
-    //»ñÈ¡ÍÓÂİÒÇÊı¾İ
+    // è·å–é™€èºä»ªæ•°æ®
     mpu6050_get_gyro();
 
-    //ÉèÖÃµç»ú×ªÏò
+    // è®¾ç½®ç”µæœºè½¬å‘
     Motor_SetDirection(0, 0);
     Motor_SetDirection(1, 0);
     Motor_SetDirection(2, 1);
     Motor_SetDirection(3, 1);
 
-    //´¦Àí¼ÓËÙ¶È
+    // å¤„ç†åŠ é€Ÿåº¦
     MPU6050_data_processing();
-    
 
-    //ÍÓÂİÒÇ°²×°Ó°Ïì½ÇËÙ¶È·½Ïò£¬Ä¬ÈÏÏò×ó×ª½ÇËÙ¶ÈÎªÕı
-    if(angle<=90&&turnleft_flag==1)
+    // é™€èºä»ªå®‰è£…å½±å“è§’é€Ÿåº¦æ–¹å‘ï¼Œé»˜è®¤å‘å·¦è½¬è§’é€Ÿåº¦ä¸ºæ­£
+    if (angle <= 90 && turnleft_flag == 1)
     {
-         //½Ç¶È¼ÆËã
-        angle+=GyroZ;
+        // è§’åº¦è®¡ç®—
+        angle += GyroZ;
 
-        //ÉèÖÃPWMÕ¼¿Õ±È£¬¿ØÖÆµç»ú×ªËÙ
+        // è®¾ç½®PWMå ç©ºæ¯”ï¼Œæ§åˆ¶ç”µæœºè½¬é€Ÿ
         PWM_SetDutyCycle(1, 50);
         PWM_SetDutyCycle(2, 50);
         PWM_SetDutyCycle(3, 50);
         PWM_SetDutyCycle(4, 50);
     }
-    else if (angle>90)
+    else if (angle > 90)
     {
-        turnleft_flag=0;
-        angle=0;
+        turnleft_flag = 0;
+        angle = 0;
         PWM_SetDutyCycle(1, 0);
         PWM_SetDutyCycle(2, 0);
         PWM_SetDutyCycle(3, 0);
@@ -64,69 +61,46 @@ void Turn_left(void)
     }
 }
 
-
 /**
- * @brief   Ô­µØÓÒ×ª90¡ã
+ * @brief   åŸåœ°å³è½¬90Â°
  * @param   void
- * @note    ÓÒÂÖ·´×ª£¬×óÂÖÕı×ª
+ * @note    å³è½®åè½¬ï¼Œå·¦è½®æ­£è½¬
  * @return  void
-*/
+ */
 void Turn_right(void)
 {
-    //»ñÈ¡ÍÓÂİÒÇÊı¾İ
+    // è·å–é™€èºä»ªæ•°æ®
     mpu6050_get_gyro();
 
-    //ÉèÖÃµç»ú×ªÏò
+    // è®¾ç½®ç”µæœºè½¬å‘
     Motor_SetDirection(0, 1);
     Motor_SetDirection(1, 1);
     Motor_SetDirection(2, 0);
     Motor_SetDirection(3, 0);
 
-    //´¦Àí¼ÓËÙ¶È
+    // å¤„ç†åŠ é€Ÿåº¦
     MPU6050_data_processing();
-    
 
-    //ÍÓÂİÒÇ°²×°Ó°Ïì½ÇËÙ¶È·½Ïò£¬Ä¬ÈÏÏò×ó×ª½ÇËÙ¶ÈÎªÕı
-    if(angle>-90&&turnright_flag==1)
+    // é™€èºä»ªå®‰è£…å½±å“è§’é€Ÿåº¦æ–¹å‘ï¼Œé»˜è®¤å‘å·¦è½¬è§’é€Ÿåº¦ä¸ºæ­£
+    if (angle > -90 && turnright_flag == 1)
 
-    {   
-        //½Ç¶È¼ÆËã
-        angle+=GyroZ;
-        
-        //ÉèÖÃPWMÕ¼¿Õ±È£¬¿ØÖÆµç»ú×ªËÙ
+    {
+        // è§’åº¦è®¡ç®—
+        angle += GyroZ;
+
+        // è®¾ç½®PWMå ç©ºæ¯”ï¼Œæ§åˆ¶ç”µæœºè½¬é€Ÿ
         PWM_SetDutyCycle(1, 50);
         PWM_SetDutyCycle(2, 50);
         PWM_SetDutyCycle(3, 50);
         PWM_SetDutyCycle(4, 50);
     }
-    else if (angle<-90)
+    else if (angle < -90)
     {
-        turnright_flag=0;
-        angle=0;
+        turnright_flag = 0;
+        angle = 0;
         PWM_SetDutyCycle(1, 0);
         PWM_SetDutyCycle(2, 0);
         PWM_SetDutyCycle(3, 0);
         PWM_SetDutyCycle(4, 0);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
