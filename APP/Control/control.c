@@ -104,3 +104,19 @@ void Turn_right(void)
         PWM_SetDutyCycle(4, 0);
     }
 }
+
+/**
+ * @brief 前进
+ * @param level 前进距离，从1到10
+ * @return void
+ * @note 4电机正转
+ * @todo 编码器算距离/编码器陀螺仪融合算距离
+ */
+void Move_forward(u8 level)
+{
+    // 设置电机转向
+    Motor_SetDirection(0, 1);
+    Motor_SetDirection(1, 1);
+    Motor_SetDirection(2, 1);
+    Motor_SetDirection(3, 1);
+}

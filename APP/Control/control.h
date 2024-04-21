@@ -9,7 +9,7 @@
 
 void Turn_left(void);
 void Turn_right(void);
-
+void Move_forward(u8 level);
 
 #endif
 
