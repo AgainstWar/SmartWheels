@@ -5,7 +5,7 @@ float angle = 0;
 float GyroZ_last, GyroZ;
 uint8_t turnleft_flag = 0, turnright_flag = 0; // 接收到的转向标志位
 uint8_t ditance_gradientmov_flag = 0;          // 接收到的梯度距离移动标志位
-uint8_t displacement;                          // 移动位移
+uint8_t displacement;                          // 移动位移标志位
 
 // 增量式PID变量
 uint8_t ek[4] = {0};              // 4个电机各自的当前误差
@@ -53,7 +53,7 @@ void Turn_left(void)
     Motor_SetDirection(2, 1);
     Motor_SetDirection(3, 1);
 
-    // 处理加速度
+    // 处理角速度
     MPU6050_data_processing();
 
     // 陀螺仪安装影响角速度方向，默认向左转角速度为正
@@ -168,7 +168,7 @@ void unit_distance(void)
         average_value += (Encode_Value[i] / 4);
     }
 
-    switch (displacement)
+    switch (ditance_gradientmov_flag)
     {
     case 0:
     {
@@ -181,31 +181,34 @@ void unit_distance(void)
 
     case 1:
     {
-        average_value += average_value;
-        if (average_value > 79618)
+        displacement += average_value;
+        if (displacement > 79618)
         {
+            ditance_gradientmov_flag=0;
             displacement = 0;
             average_value = 0;
         }
     }
-    break; // 移动一个单位距离
+    break; // 移动一个单位距离后停止
 
     case 2:
     {
-        average_value += average_value;
-        if (average_value > 2 * 79618)
+        displacement += average_value;
+        if (displacement > 2 * 79618)
         {
+            ditance_gradientmov_flag=0;
             displacement = 0;
             average_value = 0;
         }
     }
-    break; // 移动两个单位距离
+    break; // 移动两个单位距离后停止
 
     case 3:
     {
-        average_value += average_value;
-        if (average_value > 3 * 79618)
+        displacement += average_value;
+        if (displacement > 3 * 79618)
         {
+            ditance_gradientmov_flag=0;
             displacement = 0;
             average_value = 0;
         }
@@ -214,9 +217,10 @@ void unit_distance(void)
 
     case 4:
     {
-        average_value += average_value;
-        if (average_value > 4 * 79618)
+        displacement += average_value;
+        if (displacement > 4 * 79618)
         {
+            ditance_gradientmov_flag=0;
             displacement = 0;
             average_value = 0;
         }
@@ -225,9 +229,10 @@ void unit_distance(void)
 
     case 5:
     {
-        average_value += average_value;
-        if (average_value > 5 * 79618)
+        displacement += average_value;
+        if (displacement > 5 * 79618)
         {
+            ditance_gradientmov_flag=0;
             displacement = 0;
             average_value = 0;
         }
@@ -236,9 +241,10 @@ void unit_distance(void)
 
     case 6:
     {
-        average_value += average_value;
-        if (average_value > 6 * 79618)
+        displacement += average_value;
+        if (displacement > 6 * 79618)
         {
+            ditance_gradientmov_flag=0;
             displacement = 0;
             average_value = 0;
         }
@@ -247,9 +253,10 @@ void unit_distance(void)
 
     case 7:
     {
-        average_value += average_value;
-        if (average_value > 7 * 79618)
+        displacement += average_value;
+        if (displacement > 7 * 79618)
         {
+            ditance_gradientmov_flag=0;
             displacement = 0;
             average_value = 0;
         }
@@ -258,9 +265,10 @@ void unit_distance(void)
 
     case 8:
     {
-        average_value += average_value;
-        if (average_value > 8 * 79618)
+        displacement += average_value;
+        if (displacement > 8 * 79618)
         {
+            ditance_gradientmov_flag=0;
             displacement = 0;
             average_value = 0;
         }
@@ -269,9 +277,10 @@ void unit_distance(void)
 
     case 9:
     {
-        average_value += average_value;
-        if (average_value > 9 * 79618)
+        displacement += average_value;
+        if (displacement > 9 * 79618)
         {
+            ditance_gradientmov_flag=0;
             displacement = 0;
             average_value = 0;
         }
@@ -280,9 +289,10 @@ void unit_distance(void)
 
     case 10:
     {
-        average_value += average_value;
-        if (average_value > 10 * 79618)
+        displacement += average_value;
+        if (displacement > 10 * 79618)
         {
+            ditance_gradientmov_flag=0;
             displacement = 0;
             average_value = 0;
         }
