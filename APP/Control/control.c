@@ -1,6 +1,7 @@
 #include <control.h>
 
-uint8_t expect_encoderval; // 编码器期望值
+#define ENCODER_VALUE 79618 // 0.5m对应的编码器值
+uint8_t expect_encoderval;  // 编码器期望值
 float angle = 0;
 float GyroZ_last, GyroZ;
 uint8_t turnleft_flag = 0, turnright_flag = 0; // 接收到的转向标志位
@@ -128,7 +129,7 @@ void Turn_right(void)
  * @param   Expect_Encode_Value    编码器期望值
  * @param   num                    电机编号0-3
  * @note   在对应编码器中断程序中调用即可
- * @return  uint16_t
+ * @return  PID增量输出
  */
 uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
 {
@@ -155,152 +156,35 @@ uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
  * @brief   梯度距离运动
  * @note    理论计算0.5m距离单个编码器累计值约为79618
  * @note    在主函数中调用即可
- * @return  uint8_t
+ * @return  void
  */
-
 void unit_distance(void)
 {
     // 计算四个编码器平均编码值
     uint8_t average_value = 0;
-    int i = 0;
-    for (i = 0; i < 4; i++)
-    {
-        average_value += (Encode_Value[i] / 4);
-    }
 
-    switch (ditance_gradientmov_flag)
-    {
-    case 0:
+    // 计算平均值
+    average_value += (Encode_Value[0] / 4);
+    average_value += (Encode_Value[1] / 4);
+    average_value += (Encode_Value[2] / 4);
+    average_value += (Encode_Value[3] / 4);
+
+    if (displacement == 0)
     {
         Motor_Speed(0, 0);
         Motor_Speed(1, 0);
         Motor_Speed(2, 0);
         Motor_Speed(3, 0);
     }
-    break; // 静止
-
-    case 1:
+    else if (displacement >= 1 && displacement <= 10)
     {
-        displacement += average_value;
-        if (displacement > 79618)
+        average_value += average_value;
+        if (average_value > displacement * ENCODER_VALUE)
         {
-            ditance_gradientmov_flag=0;
+            ditance_gradientmov_flag = 0;
             displacement = 0;
             average_value = 0;
         }
-    }
-    break; // 移动一个单位距离后停止
-
-    case 2:
-    {
-        displacement += average_value;
-        if (displacement > 2 * 79618)
-        {
-            ditance_gradientmov_flag=0;
-            displacement = 0;
-            average_value = 0;
-        }
-    }
-    break; // 移动两个单位距离后停止
-
-    case 3:
-    {
-        displacement += average_value;
-        if (displacement > 3 * 79618)
-        {
-            ditance_gradientmov_flag=0;
-            displacement = 0;
-            average_value = 0;
-        }
-    }
-    break;
-
-    case 4:
-    {
-        displacement += average_value;
-        if (displacement > 4 * 79618)
-        {
-            ditance_gradientmov_flag=0;
-            displacement = 0;
-            average_value = 0;
-        }
-    }
-    break;
-
-    case 5:
-    {
-        displacement += average_value;
-        if (displacement > 5 * 79618)
-        {
-            ditance_gradientmov_flag=0;
-            displacement = 0;
-            average_value = 0;
-        }
-    }
-    break;
-
-    case 6:
-    {
-        displacement += average_value;
-        if (displacement > 6 * 79618)
-        {
-            ditance_gradientmov_flag=0;
-            displacement = 0;
-            average_value = 0;
-        }
-    }
-    break;
-
-    case 7:
-    {
-        displacement += average_value;
-        if (displacement > 7 * 79618)
-        {
-            ditance_gradientmov_flag=0;
-            displacement = 0;
-            average_value = 0;
-        }
-    }
-    break;
-
-    case 8:
-    {
-        displacement += average_value;
-        if (displacement > 8 * 79618)
-        {
-            ditance_gradientmov_flag=0;
-            displacement = 0;
-            average_value = 0;
-        }
-    }
-    break;
-
-    case 9:
-    {
-        displacement += average_value;
-        if (displacement > 9 * 79618)
-        {
-            ditance_gradientmov_flag=0;
-            displacement = 0;
-            average_value = 0;
-        }
-    }
-    break;
-
-    case 10:
-    {
-        displacement += average_value;
-        if (displacement > 10 * 79618)
-        {
-            ditance_gradientmov_flag=0;
-            displacement = 0;
-            average_value = 0;
-        }
-    }
-    break;
-
-    default:
-        break;
     }
 }
 
