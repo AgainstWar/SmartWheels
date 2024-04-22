@@ -28,12 +28,12 @@ static void GPIO_Configuration(void)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
     // 设置GPIO为复用推挽输出
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7; // 查�?�数�?手册，非重映射TIM3 CH1-2对应PA6和PA7
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7; // 查看数据手册，非重映射TIM3 CH1-2对应PA6和PA7
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1; // 查�?�数�?手册，非重映射TIM3 CH3-4对应PB0和PB1
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1; // 查看数据手册，非重映射TIM3 CH3-4对应PB0和PB1
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 
@@ -55,7 +55,7 @@ static void TIM3_Configuration(void)
     // PWM模式配置
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStructure.TIM_Pulse = 50; // 初�?�占空比0%
+    TIM_OCInitStructure.TIM_Pulse = 50; // 初始化占空比0%
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 
     // 初始化TIM3的Channel1
