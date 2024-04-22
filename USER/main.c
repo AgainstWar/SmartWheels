@@ -5,6 +5,7 @@
 #include "exti.h"
 #include "time.h"
 #include "MPU6050.h"
+#include "usart.h"
 
 void delay(u32 nms);
 
