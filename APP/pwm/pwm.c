@@ -1,6 +1,5 @@
 #include <pwm.h>
 
-
 static void GPIO_Configuration(void);
 static void TIM3_Configuration(void);
 

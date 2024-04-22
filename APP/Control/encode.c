@@ -1,6 +1,5 @@
 #include "encode.h"
 
-
 u32 Encode_Value[4] = {0, 0, 0, 0};
 float speed[4] = {0};
 const float diameter = 4E-2;  // 轮胎直径 4cm
