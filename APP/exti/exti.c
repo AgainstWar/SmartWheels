@@ -81,17 +81,6 @@ void EXTI1_IRQHandler(void)
 	if (EXTI_GetITStatus(EXTI_Line1) == 1)
 	{
 		Encode_Value[0]++;
-		
-		//���0�ٶȿ��ƣ�����ʽPID
-		if(turnleft_flag==0&&turnright_flag==0&&displacement!=0)
-		{	
-			//���õ��ת�� 1-��ת��0-��ת
-			Motor_SetDirection(0, 1);
-			//����������
-			Speed[0]=PID_Increasement(expect_encoderval,0);
-			//���õ���ٶ�
-			Motor_Speed(0,Speed[0]);
-		}
 	}
 	EXTI_ClearITPendingBit(EXTI_Line1);
 }
@@ -106,17 +95,6 @@ void EXTI2_IRQHandler(void)
 	if (EXTI_GetITStatus(EXTI_Line2) == 1)
 	{
 		Encode_Value[1]++;
-
-		//���1�ٶȿ��ƣ�����ʽPID
-		if(turnleft_flag==0&&turnright_flag==0&&displacement!=0)
-		{	
-			//���õ��ת�� 1-��ת��0-��ת
-			Motor_SetDirection(1, 1);
-			//����������
-			Speed[1]=PID_Increasement(expect_encoderval,1);
-			//���õ���ٶ�
-			Motor_Speed(1,Speed[1]);
-		}
 	}
 	EXTI_ClearITPendingBit(EXTI_Line2);
 }
@@ -131,17 +109,6 @@ void EXTI3_IRQHandler(void)
 	if (EXTI_GetITStatus(EXTI_Line3) == 1)
 	{
 		Encode_Value[2]++;
-
-		//���2�ٶȿ��ƣ�����ʽPID
-		if(turnleft_flag==0&&turnright_flag==0&&displacement!=0)
-		{	
-			//���õ��ת�� 1-��ת��0-��ת
-			Motor_SetDirection(2, 1);
-			//����������
-			Speed[2]=PID_Increasement(expect_encoderval,2);
-			//���õ���ٶ�
-			Motor_Speed(2,Speed[2]);
-		}
 	}
 	EXTI_ClearITPendingBit(EXTI_Line3);
 }
@@ -156,17 +123,6 @@ void EXTI4_IRQHandler(void)
 	if (EXTI_GetITStatus(EXTI_Line4) == 1)
 	{
 		Encode_Value[3]++;
-
-		//���3�ٶȿ��ƣ�����ʽPID
-		if(turnleft_flag==0&&turnright_flag==0&&displacement!=0)
-		{	
-			//���õ��ת�� 1-��ת��0-��ת
-			Motor_SetDirection(3, 1);
-			//����������
-			Speed[3]=PID_Increasement(expect_encoderval,3);
-			//���õ���ٶ�
-			Motor_Speed(3,Speed[3]);
-		}
 	}
 	EXTI_ClearITPendingBit(EXTI_Line4);
 }
