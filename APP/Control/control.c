@@ -1,27 +1,26 @@
 #include <control.h>
 
-
-uint8_t expect_encoderval;//编码器期望值
+uint8_t expect_encoderval; // 编码器期望值
 float angle = 0;
 float GyroZ_last, GyroZ;
 uint8_t turnleft_flag = 0, turnright_flag = 0; // 接收到的转向标志位
-uint8_t ditance_gradientmov_flag=0;           // 接收到的梯度距离移动标志位
-uint8_t displacement;//移动位移
+uint8_t ditance_gradientmov_flag = 0;          // 接收到的梯度距离移动标志位
+uint8_t displacement;                          // 移动位移
 
-//增量式PID变量
-uint8_t ek[4]={0};      //4个电机各自的当前误差
-uint8_t ek1[4]={0};     //4个电机各自的前一次误差
-uint8_t ek2[4]={0};     //4个电机各自的前前次误差
-uint16_t Increament[4]={0};      //计算得到的增量值
-uint16_t Increament_Out[4]={0};  //增量输出
+// 增量式PID变量
+uint8_t ek[4] = {0};              // 4个电机各自的当前误差
+uint8_t ek1[4] = {0};             // 4个电机各自的前一次误差
+uint8_t ek2[4] = {0};             // 4个电机各自的前前次误差
+uint16_t Increament[4] = {0};     // 计算得到的增量值
+uint16_t Increament_Out[4] = {0}; // 增量输出
 
-//增量式PID 参数数组     P   I   D  0-3行对应电机编号，P、I、D对应各电机参数
-double PID_Para[4][3]={ 8,  2,  25,//电机0参数
-                        8,  2,  25,//电机1参数
-                        8,  2,  25,//电机2参数
-                        8,  2,  25,//电机3参数
-                      };
-
+// 增量式PID 参数数组     P   I   D  0-3行对应电机编号，P、I、D对应各电机参数
+double PID_Para[4][3] = {
+    8, 2, 25, // 电机0参数
+    8, 2, 25, // 电机1参数
+    8, 2, 25, // 电机2参数
+    8, 2, 25, // 电机3参数
+};
 
 /**
  * @brief   MPU6050 Z轴角速度处理
@@ -124,7 +123,6 @@ void Turn_right(void)
     }
 }
 
-
 /**
  * @brief   增量式PID
  * @param   Expect_Encode_Value    编码器期望值
@@ -132,31 +130,26 @@ void Turn_right(void)
  * @note   在对应编码器中断程序中调用即可
  * @return  uint16_t
  */
-uint16_t PID_Increasement(int8_t Expect_Encode_Value,int8_t num)
+uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
 {
-    //计算当前误差
-    ek[num] = Expect_Encode_Value - Encode_Value[num] ;
+    // 计算当前误差
+    ek[num] = Expect_Encode_Value - Encode_Value[num];
 
-    //计算增量
-    Increament[num]  = PID_Para[num][0]*(ek[num] - ek1[num]) 
-                     + PID_Para[num][1]*ek[num]
-                     + PID_Para[num][2]*(ek[num]-2*ek1[num]+ek2[num]);
-    //增量累加输出
-    Increament_Out[num] +=Increament[num]; 
-    
-    //更新误差
-     ek2[num]=ek1[num];
-     ek1[num]=ek[num];
+    // 计算增量
+    Increament[num] = PID_Para[num][0] * (ek[num] - ek1[num]) + PID_Para[num][1] * ek[num] + PID_Para[num][2] * (ek[num] - 2 * ek1[num] + ek2[num]);
+    // 增量累加输出
+    Increament_Out[num] += Increament[num];
 
-    //限幅
-    if(Increament_Out[num]>100)
-        Increament_Out[num]=100;
-      
+    // 更新误差
+    ek2[num] = ek1[num];
+    ek1[num] = ek[num];
 
-     return Increament_Out[num];
+    // 限幅
+    if (Increament_Out[num] > 100)
+        Increament_Out[num] = 100;
 
+    return Increament_Out[num];
 }
-
 
 /**
  * @brief   梯度距离运动
@@ -167,125 +160,135 @@ uint16_t PID_Increasement(int8_t Expect_Encode_Value,int8_t num)
 
 void unit_distance(void)
 {
-    //计算四个编码器平均编码值
-    uint8_t average_value=0;
-    int i=0;
-    for(i=0;i<4;i++)
+    // 计算四个编码器平均编码值
+    uint8_t average_value = 0;
+    int i = 0;
+    for (i = 0; i < 4; i++)
     {
-        average_value+=(Encode_Value[i]/4);
+        average_value += (Encode_Value[i] / 4);
     }
 
     switch (displacement)
     {
-    case 0 :
+    case 0:
     {
         Motor_Speed(0, 0);
         Motor_Speed(1, 0);
         Motor_Speed(2, 0);
         Motor_Speed(3, 0);
-    }break;//静止
+    }
+    break; // 静止
 
-    case 1 :
+    case 1:
     {
-        average_value+=average_value;
-        if(average_value>79618)
+        average_value += average_value;
+        if (average_value > 79618)
         {
-            displacement=0;
-            average_value=0;
-            
+            displacement = 0;
+            average_value = 0;
         }
-    }break;//移动一个单位距离
+    }
+    break; // 移动一个单位距离
 
-    case 2 :
+    case 2:
     {
-        average_value+=average_value;
-        if(average_value>2*79618)
+        average_value += average_value;
+        if (average_value > 2 * 79618)
         {
-            displacement=0;
-            average_value=0;
+            displacement = 0;
+            average_value = 0;
         }
-    }break;//移动两个单位距离
+    }
+    break; // 移动两个单位距离
 
-    case 3 :
+    case 3:
     {
-        average_value+=average_value;
-        if(average_value>3*79618)
+        average_value += average_value;
+        if (average_value > 3 * 79618)
         {
-            displacement=0;
-            average_value=0;
+            displacement = 0;
+            average_value = 0;
         }
-    }break;
+    }
+    break;
 
-    case 4 :
+    case 4:
     {
-        average_value+=average_value;
-        if(average_value>4*79618)
+        average_value += average_value;
+        if (average_value > 4 * 79618)
         {
-            displacement=0;
-            average_value=0;
+            displacement = 0;
+            average_value = 0;
         }
-    }break;  
+    }
+    break;
 
-    case 5 :
+    case 5:
     {
-        average_value+=average_value;
-        if(average_value>5*79618)
+        average_value += average_value;
+        if (average_value > 5 * 79618)
         {
-            displacement=0;
-            average_value=0;
+            displacement = 0;
+            average_value = 0;
         }
-    }break;
+    }
+    break;
 
-    case 6 :
+    case 6:
     {
-        average_value+=average_value;
-        if(average_value>6*79618)
+        average_value += average_value;
+        if (average_value > 6 * 79618)
         {
-            displacement=0;
-            average_value=0;
+            displacement = 0;
+            average_value = 0;
         }
-    }break;
+    }
+    break;
 
-    case 7 :
+    case 7:
     {
-        average_value+=average_value;
-        if(average_value>7*79618)
+        average_value += average_value;
+        if (average_value > 7 * 79618)
         {
-            displacement=0;
-            average_value=0;
+            displacement = 0;
+            average_value = 0;
         }
-    }break;
+    }
+    break;
 
-    case 8 :
+    case 8:
     {
-        average_value+=average_value;
-        if(average_value>8*79618)
+        average_value += average_value;
+        if (average_value > 8 * 79618)
         {
-            displacement=0;
-            average_value=0;
+            displacement = 0;
+            average_value = 0;
         }
-    } break;
+    }
+    break;
 
-    case 9 :
+    case 9:
     {
-        average_value+=average_value;
-        if(average_value>9*79618)
+        average_value += average_value;
+        if (average_value > 9 * 79618)
         {
-            displacement=0;
-            average_value=0;
+            displacement = 0;
+            average_value = 0;
         }
-    }break;
+    }
+    break;
 
-    case 10 :
+    case 10:
     {
-        average_value+=average_value;
-        if(average_value>10*79618)
+        average_value += average_value;
+        if (average_value > 10 * 79618)
         {
-            displacement=0;
-            average_value=0;
+            displacement = 0;
+            average_value = 0;
         }
-    } break;
-    
+    }
+    break;
+
     default:
         break;
     }
