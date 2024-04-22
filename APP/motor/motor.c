@@ -1,6 +1,8 @@
 #include <motor.h>
+
 u8 Direction[4] = {1, 1, 1, 1};
 u8 Last_Speed[4] = {0, 0, 0, 0};
+u8 Speed[4]={0}; 
 
 /**
  * @brief 初始化电机

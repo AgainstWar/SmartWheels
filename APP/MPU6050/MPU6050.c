@@ -2,27 +2,29 @@
 #include "MPU6050.h"
 #include "SysTick.h"
 
+
+
 int8_t Zero_Drift;
 int16_t mpu6050_gyro_x, mpu6050_gyro_y, mpu6050_gyro_z;
 int16_t mpu6050_acc_x, mpu6050_acc_y, mpu6050_acc_z;
 
 #define GET_MPU6050_SDA GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_7)
-#define MPU6050_SCL_LOW() GPIO_SetBits(GPIOB, GPIO_Pin_6)    // IO¿ÚÊä³öµÍµçÆ½
-#define MPU6050_SCL_HIGH() GPIO_ResetBits(GPIOB, GPIO_Pin_6) // IO¿ÚÊä³ö¸ßµçÆ½
-#define MPU6050_SDA_LOW() GPIO_SetBits(GPIOB, GPIO_Pin_7)    // IO¿ÚÊä³öµÍµçÆ½
-#define MPU6050_SDA_HIGH() GPIO_ResetBits(GPIOB, GPIO_Pin_7) // IO¿ÚÊä³ö¸ßµçÆ½
+#define MPU6050_SCL_LOW() GPIO_SetBits(GPIOB, GPIO_Pin_6)    // IOï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½Æ½
+#define MPU6050_SCL_HIGH() GPIO_ResetBits(GPIOB, GPIO_Pin_6) // IOï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ßµï¿½Æ½
+#define MPU6050_SDA_LOW() GPIO_SetBits(GPIOB, GPIO_Pin_7)    // IOï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½Æ½
+#define MPU6050_SDA_HIGH() GPIO_ResetBits(GPIOB, GPIO_Pin_7) // IOï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ßµï¿½Æ½
 
-#define ack 1    // Ö÷Ó¦´ð
-#define no_ack 0 // ´ÓÓ¦´ð
+#define ack 1    // ï¿½ï¿½Ó¦ï¿½ï¿½
+#define no_ack 0 // ï¿½ï¿½Ó¦ï¿½ï¿½
 
 void MPU6050_Z_Zero_Drift_Calculation(void);
 
 
 /**
- * @brief   Ä£ÄâIIC³õÊ¼»¯
+ * @brief   Ä£ï¿½ï¿½IICï¿½ï¿½Ê¼ï¿½ï¿½
  * @param   NULL
  * @return  void
- * @note Èç¹ûIICÍ¨Ñ¶Ê§°Ü¿ÉÒÔ³¢ÊÔÔö¼ÓjµÄÖµ
+ * @note ï¿½ï¿½ï¿½IICÍ¨Ñ¶Ê§ï¿½Ü¿ï¿½ï¿½Ô³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½jï¿½ï¿½Öµ
  */
 static void mpu6050_simiic_delay(void)
 {
@@ -55,7 +57,7 @@ static void mpu6050_simiic_stop(void)
 }
 
 // internal fuction
-static void mpu6050_simiic_sendack(unsigned char ack_dat) // Ö÷Ó¦´ð(°üº¬ack:SDA=0ºÍno_ack:SDA=0)
+static void mpu6050_simiic_sendack(unsigned char ack_dat) // ï¿½ï¿½Ó¦ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ack:SDA=0ï¿½ï¿½no_ack:SDA=0)
 {
 
     MPU6050_SCL_LOW();
@@ -81,7 +83,7 @@ static int mpu6050_sccb_waitack(void)
     MPU6050_SCL_HIGH();
     mpu6050_simiic_delay();
 
-    if (GET_MPU6050_SDA) // Ó¦´ðÎª¸ßµçÆ½£¬Òì³££¬Í¨ÐÅÊ§°Ü
+    if (GET_MPU6050_SDA) // Ó¦ï¿½ï¿½Îªï¿½ßµï¿½Æ½ï¿½ï¿½ï¿½ì³£ï¿½ï¿½Í¨ï¿½ï¿½Ê§ï¿½ï¿½
     {
 
         MPU6050_SCL_LOW();
@@ -94,10 +96,10 @@ static int mpu6050_sccb_waitack(void)
 }
 
 /**
- * @brief   Ä£ÄâIIC·¢ËÍÊý¾Ý
- * @param   c		·¢ËÍµÄÊý¾Ý£¨¿ÉÒÔÊÇÊý¾ÝÒ²¿ÉÊÇµØÖ·£©£¬·¢ËÍÍêºó½ÓÊÕ´ÓÓ¦´ð
+ * @brief   Ä£ï¿½ï¿½IICï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param   c		ï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½Çµï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ´ï¿½Ó¦ï¿½ï¿½
  * @return  void
- * @note    ²»¿¼ÂÇ´ÓÓ¦´ðÎ»
+ * @note    ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½Ó¦ï¿½ï¿½Î»
  */
 static void mpu6050_send_ch(uint8_t c)
 {
@@ -105,22 +107,22 @@ static void mpu6050_send_ch(uint8_t c)
     while (i--)
     {
         if (c & 0x80)
-            MPU6050_SDA_HIGH(); // SDA Êä³öÊý¾Ý
+            MPU6050_SDA_HIGH(); // SDA ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         else
             MPU6050_SDA_LOW();
         c <<= 1;
         mpu6050_simiic_delay();
-        MPU6050_SCL_HIGH(); // SCL À­¸ß£¬²É¼¯ÐÅºÅ
+        MPU6050_SCL_HIGH(); // SCL ï¿½ï¿½ï¿½ß£ï¿½ï¿½É¼ï¿½ï¿½Åºï¿½
         mpu6050_simiic_delay();
-        MPU6050_SCL_LOW(); // SCL Ê±ÖÓÏßÀ­µÍ
+        MPU6050_SCL_LOW(); // SCL Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     }
     mpu6050_sccb_waitack();
 }
 
 /**
- * @brief ×Ö½Ú½ÓÊÕ³ÌÐò
+ * @brief ï¿½Ö½Ú½ï¿½ï¿½Õ³ï¿½ï¿½ï¿½
  * @param ack_x
- * @note  ½ÓÊÕÆ÷¼þ´«À´µÄÊý¾Ý£¬´Ë³ÌÐòÓ¦ÅäºÏ|Ö÷Ó¦´ðº¯Êý|Ê¹ÓÃ
+ * @note  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½Ë³ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½|ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½|Ê¹ï¿½ï¿½
  * @note  internal fuction
  */
 static uint8_t mpu6050_read_ch(uint8_t ack_x)
@@ -135,14 +137,14 @@ static uint8_t mpu6050_read_ch(uint8_t ack_x)
     for (i = 0; i < 8; i++)
     {
         mpu6050_simiic_delay();
-        MPU6050_SCL_LOW(); // ÖÃÊ±ÖÓÏßÎªµÍ£¬×¼±¸½ÓÊÕÊý¾ÝÎ»
+        MPU6050_SCL_LOW(); // ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Îªï¿½Í£ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»
         mpu6050_simiic_delay();
-        MPU6050_SCL_HIGH(); // ÖÃÊ±ÖÓÏßÎª¸ß£¬Ê¹Êý¾ÝÏßÉÏÊý¾ÝÓÐÐ§
+        MPU6050_SCL_HIGH(); // ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Îªï¿½ß£ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§
         mpu6050_simiic_delay();
         c <<= 1;
         if (GET_MPU6050_SDA)
         {
-            c += 1; // ¶ÁÊý¾ÝÎ»£¬½«½ÓÊÕµÄÊý¾Ý´æc
+            c += 1; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½Ý´ï¿½c
         }
     }
 
@@ -154,125 +156,125 @@ static uint8_t mpu6050_read_ch(uint8_t ack_x)
 }
 
 /**
- *  @brief      Ä£ÄâIICÐ´Êý¾Ýµ½Éè±¸¼Ä´æÆ÷º¯Êý
- *  @param      dev_add			Éè±¸µØÖ·(µÍÆßÎ»µØÖ·)
- *  @param      reg				¼Ä´æÆ÷µØÖ·
- *  @param      dat				Ð´ÈëµÄÊý¾Ý
+ *  @brief      Ä£ï¿½ï¿½IICÐ´ï¿½ï¿½ï¿½Ýµï¿½ï¿½è±¸ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ *  @param      dev_add			ï¿½è±¸ï¿½ï¿½Ö·(ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ö·)
+ *  @param      reg				ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
+ *  @param      dat				Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  *  @return     void
  *  @since      v1.0
  */
 static void mpu6050_simiic_write_reg(uint8_t dev_add, uint8_t reg, uint8_t dat)
 {
     mpu6050_simiic_start();
-    mpu6050_send_ch((dev_add << 1) | 0x00); // ·¢ËÍÆ÷¼þµØÖ·¼ÓÐ´Î»
-    mpu6050_send_ch(reg);                   // ·¢ËÍ´Ó»ú¼Ä´æÆ÷µØÖ·
-    mpu6050_send_ch(dat);                   // ·¢ËÍÐèÒªÐ´ÈëµÄÊý¾Ý
+    mpu6050_send_ch((dev_add << 1) | 0x00); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½Ð´Î»
+    mpu6050_send_ch(reg);                   // ï¿½ï¿½ï¿½Í´Ó»ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
+    mpu6050_send_ch(dat);                   // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÐ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     mpu6050_simiic_stop();
 }
 
 /**
- *  @brief      Ä£ÄâIIC´ÓÉè±¸¼Ä´æÆ÷¶ÁÈ¡Êý¾Ý
- *  @param      dev_add			Éè±¸µØÖ·(µÍÆßÎ»µØÖ·)
- *  @param      reg				¼Ä´æÆ÷µØÖ·
- *  @param      type			Ñ¡ÔñÍ¨ÐÅ·½Ê½ÊÇIIC  »¹ÊÇ SCCB
- *  @return     uint8_t			·µ»Ø¼Ä´æÆ÷µÄÊý¾Ý
+ *  @brief      Ä£ï¿½ï¿½IICï¿½ï¿½ï¿½è±¸ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
+ *  @param      dev_add			ï¿½è±¸ï¿½ï¿½Ö·(ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ö·)
+ *  @param      reg				ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
+ *  @param      type			Ñ¡ï¿½ï¿½Í¨ï¿½Å·ï¿½Ê½ï¿½ï¿½IIC  ï¿½ï¿½ï¿½ï¿½ SCCB
+ *  @return     uint8_t			ï¿½ï¿½ï¿½Ø¼Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  *  @since      v1.0
  */
 uint8_t mpu6050_simiic_read_reg(uint8_t dev_add, uint8_t reg)
 {
     uint8_t dat;
     mpu6050_simiic_start();
-    mpu6050_send_ch((dev_add << 1) | 0x00); // ·¢ËÍÆ÷¼þµØÖ·¼ÓÐ´Î»
-    mpu6050_send_ch(reg);                   // ·¢ËÍ´Ó»ú¼Ä´æÆ÷µØÖ·
+    mpu6050_send_ch((dev_add << 1) | 0x00); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½Ð´Î»
+    mpu6050_send_ch(reg);                   // ï¿½ï¿½ï¿½Í´Ó»ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
 
     mpu6050_simiic_start();
-    mpu6050_send_ch((dev_add << 1) | 0x01); // ·¢ËÍÆ÷¼þµØÖ·¼Ó¶ÁÎ»
-    dat = mpu6050_read_ch(no_ack);          // ¶ÁÈ¡Êý¾Ý
+    mpu6050_send_ch((dev_add << 1) | 0x01); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½Ó¶ï¿½Î»
+    dat = mpu6050_read_ch(no_ack);          // ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
     mpu6050_simiic_stop();
 
     return dat;
 }
 
 /**
- *  @brief      Ä£ÄâIIC¶ÁÈ¡¶à×Ö½ÚÊý¾Ý
- *  @param      dev_add			Éè±¸µØÖ·(µÍÆßÎ»µØÖ·)
- *  @param      reg				¼Ä´æÆ÷µØÖ·
- *  @param      dat_add			Êý¾Ý±£´æµÄµØÖ·Ö¸Õë
- *  @param      num				¶ÁÈ¡×Ö½ÚÊýÁ¿
- *  @param      type			Ñ¡ÔñÍ¨ÐÅ·½Ê½ÊÇIIC  »¹ÊÇ SCCB
- *  @return     uint8_t			·µ»Ø¼Ä´æÆ÷µÄÊý¾Ý
+ *  @brief      Ä£ï¿½ï¿½IICï¿½ï¿½È¡ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½
+ *  @param      dev_add			ï¿½è±¸ï¿½ï¿½Ö·(ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ö·)
+ *  @param      reg				ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
+ *  @param      dat_add			ï¿½ï¿½ï¿½Ý±ï¿½ï¿½ï¿½Äµï¿½Ö·Ö¸ï¿½ï¿½
+ *  @param      num				ï¿½ï¿½È¡ï¿½Ö½ï¿½ï¿½ï¿½ï¿½ï¿½
+ *  @param      type			Ñ¡ï¿½ï¿½Í¨ï¿½Å·ï¿½Ê½ï¿½ï¿½IIC  ï¿½ï¿½ï¿½ï¿½ SCCB
+ *  @return     uint8_t			ï¿½ï¿½ï¿½Ø¼Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  *  @since      v1.0
  */
 void mpu6050_simiic_read_regs(uint8_t dev_add, uint8_t reg, uint8_t *dat_add, uint8_t num)
 {
     mpu6050_simiic_start();
-    mpu6050_send_ch((dev_add << 1) | 0x00); // ·¢ËÍÆ÷¼þµØÖ·¼ÓÐ´Î»
-    mpu6050_send_ch(reg);                   // ·¢ËÍ´Ó»ú¼Ä´æÆ÷µØÖ·
+    mpu6050_send_ch((dev_add << 1) | 0x00); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½Ð´Î»
+    mpu6050_send_ch(reg);                   // ï¿½ï¿½ï¿½Í´Ó»ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
 
     mpu6050_simiic_start();
-    mpu6050_send_ch((dev_add << 1) | 0x01); // ·¢ËÍÆ÷¼þµØÖ·¼Ó¶ÁÎ»
+    mpu6050_send_ch((dev_add << 1) | 0x01); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½Ó¶ï¿½Î»
     while (--num)
     {
-        *dat_add = mpu6050_read_ch(ack); // ¶ÁÈ¡Êý¾Ý
+        *dat_add = mpu6050_read_ch(ack); // ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
         dat_add++;
     }
-    *dat_add = mpu6050_read_ch(no_ack); // ¶ÁÈ¡Êý¾Ý
+    *dat_add = mpu6050_read_ch(no_ack); // ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
     mpu6050_simiic_stop();
 }
 
 /**
- *@brief      MPU6050×Ô¼ìº¯Êý
+ *@brief      MPU6050ï¿½Ô¼ìº¯ï¿½ï¿½
  *@param      NULL
  *@return     void
  *@since      v1.0
  */
 static uint8_t mpu6050_self1_check(void)
 {
-    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, PWR_MGMT_1, 0x00); // ½â³ýÐÝÃß×´Ì¬
-    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, SMPLRT_DIV, 0x07); // 125HZ²ÉÑùÂÊ
+    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, PWR_MGMT_1, 0x00); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
+    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, SMPLRT_DIV, 0x07); // 125HZï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     if (0x07 != mpu6050_simiic_read_reg(MPU6050_DEV_ADDR, SMPLRT_DIV))
     {
         // printf("mpu6050 init error.\r\n");
         return 1;
-        // ¿¨ÔÚÕâÀïÔ­ÒòÓÐÒÔÏÂ¼¸µã
-        // 1 MPU6050»µÁË£¬Èç¹ûÊÇÐÂµÄÕâÑùµÄ¸ÅÂÊ¼«µÍ
-        // 2 ½ÓÏß´íÎó»òÕßÃ»ÓÐ½ÓºÃ
-        // 3 ¿ÉÄÜÄãÐèÒªÍâ½ÓÉÏÀ­µç×è£¬ÉÏÀ­µ½3.3V
-        // 4 ¿ÉÄÜÃ»ÓÐµ÷ÓÃÄ£ÄâIICµÄ³õÊ¼»¯º¯Êý
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½
+        // 1 MPU6050ï¿½ï¿½ï¿½Ë£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½
+        // 2 ï¿½ï¿½ï¿½ß´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð½Óºï¿½
+        // 3 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½3.3V
+        // 4 ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ðµï¿½ï¿½ï¿½Ä£ï¿½ï¿½IICï¿½Ä³ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     }
 
     return 0;
 }
 
 /**
- *  @brief      ³õÊ¼»¯MPU6050
+ *  @brief      ï¿½ï¿½Ê¼ï¿½ï¿½MPU6050
  *  @param      NULL
  *  @return     void
  */
 uint8_t mpu6050_init(void)
 {
-    delay_ms(100); // ÉÏµçÑÓÊ±
+    delay_ms(100); // ï¿½Ïµï¿½ï¿½ï¿½Ê±
 
     if (mpu6050_self1_check())
     {
         return 1;
     }
-    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, PWR_MGMT_1, 0x00);     // ½â³ýÐÝÃß×´Ì¬
-    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, SMPLRT_DIV, 0x07);     // 125HZ²ÉÑùÂÊ
+    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, PWR_MGMT_1, 0x00);     // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
+    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, SMPLRT_DIV, 0x07);     // 125HZï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, MPU6050_CONFIG, 0x04); //
-    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, GYRO_CONFIG, 0x18);    // ½ÇËÙ¶ÈÂúÁ¿³Ì¡À2000dps
-    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, ACCEL_CONFIG, 0x10);   // ¼ÓËÙ¶ÈÁ¿³Ì¡À8g
+    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, GYRO_CONFIG, 0x18);    // ï¿½ï¿½ï¿½Ù¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¡ï¿½2000dps
+    mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, ACCEL_CONFIG, 0x10);   // ï¿½ï¿½ï¿½Ù¶ï¿½ï¿½ï¿½ï¿½Ì¡ï¿½8g
     mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, User_Control, 0x00);
     mpu6050_simiic_write_reg(MPU6050_DEV_ADDR, INT_PIN_CFG, 0x02);
-    MPU6050_Z_Zero_Drift_Calculation();                                //ZÖáÁãÆ¯¼ÆËã
+    MPU6050_Z_Zero_Drift_Calculation();                               // Zï¿½ï¿½ï¿½ï¿½Æ¯ï¿½ï¿½ï¿½ï¿½
     return 0;
 }
 
 /**
- * @brief   »ñÈ¡MPU6050¼ÓËÙ¶ÈÊý¾Ý
+ * @brief   ï¿½ï¿½È¡MPU6050ï¿½ï¿½ï¿½Ù¶ï¿½ï¿½ï¿½ï¿½ï¿½
  * @param   NULL
  * @return  void
- * @note	Ö´ÐÐ¸Ãº¯Êýºó£¬Ö±½Ó²é¿´¶ÔÓ¦µÄ±äÁ¿¼´¿É
+ * @note	Ö´ï¿½Ð¸Ãºï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½Ó²é¿´ï¿½ï¿½Ó¦ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 void mpu6050_get_accdata(void)
 {
@@ -285,7 +287,7 @@ void mpu6050_get_accdata(void)
 }
 
 /**
- *  @brief      »ñÈ¡MPU6050ÍÓÂÝÒÇÊý¾Ý
+ *  @brief      ï¿½ï¿½È¡MPU6050ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  *  @param      NULL
  *  @return     void
  *  @since      v1.0
@@ -303,10 +305,10 @@ void mpu6050_get_gyro(void)
 
 
 /**
- *  @brief      ¼ÆËãMPU6050 ZÖáÁãÆ¯
+ *  @brief      ï¿½ï¿½ï¿½ï¿½MPU6050 Zï¿½ï¿½ï¿½ï¿½Æ¯
  *  @param      NULL
  *  @return     void
- *  @note       º¯Êýµ÷ÓÃÓÚ³õÊ¼»¯ÖÐ£¬ÉÏµç¼´¼ÆËãÁãÆ¯Öµ£¬²¢ÓÚºóÐøÒÖÖÆ
+ *  @note       ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú³ï¿½Ê¼ï¿½ï¿½ï¿½Ð£ï¿½ï¿½Ïµç¼´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¯Öµï¿½ï¿½ï¿½ï¿½ï¿½Úºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 */
 void MPU6050_Z_Zero_Drift_Calculation(void)
 {

@@ -3,10 +3,11 @@
 
 #include "system.h" 
 
-#define USART1_REC_LEN		200  	//¶¨Òå×î´ó½ÓÊÕ×Ö½ÚÊý 200
 
-extern u8  USART1_RX_BUF[USART1_REC_LEN]; //½ÓÊÕ»º³å,×î´óUSART_REC_LEN¸ö×Ö½Ú.Ä©×Ö½ÚÎª»»ÐÐ·û 
-extern u16 USART1_RX_STA;         		//½ÓÊÕ×´Ì¬±ê¼Ç
+#define USART1_REC_LEN		200  	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½ 200
+
+extern u8  USART1_RX_BUF[USART1_REC_LEN]; //ï¿½ï¿½ï¿½Õ»ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½USART_REC_LENï¿½ï¿½ï¿½Ö½ï¿½.Ä©ï¿½Ö½ï¿½Îªï¿½ï¿½ï¿½Ð·ï¿½ 
+extern u16 USART1_RX_STA;         		//ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½
 
 
 void USART1_Init(u32 bound);

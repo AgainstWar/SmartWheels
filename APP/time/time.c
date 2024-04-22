@@ -1,23 +1,24 @@
 #include "time.h"
 
+
 u16 counter = 0;
 
 void NVIC_Configuration(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
 
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	   // ÉèÖÃNVICÖÐ¶Ï·Ö×é0
-	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;	   // ¶¨Ê±Æ÷ÖÐ¶ÏÍ¨µÀ
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; // ×ÓÓÅÏÈ¼¶
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // IRQÍ¨µÀÊ¹ÄÜ
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	   // ï¿½ï¿½ï¿½ï¿½NVICï¿½Ð¶Ï·ï¿½ï¿½ï¿½0
+	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;	   // ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ð¶ï¿½Í¨ï¿½ï¿½
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; // ï¿½ï¿½ï¿½ï¿½ï¿½È¼ï¿½
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // IRQÍ¨ï¿½ï¿½Ê¹ï¿½ï¿½
 
 	NVIC_Init(&NVIC_InitStructure);
 }
 
 /**
- * @brief ¶¨Ê±Æ÷2³õÊ¼»¯
+ * @brief ï¿½ï¿½Ê±ï¿½ï¿½2ï¿½ï¿½Ê¼ï¿½ï¿½
  * @param void
- * @note ¸üÐÂÆµÂÊ¼ÆËã¹«Ê½= 72Mhz/((per+1)*(psc+1))
+ * @note ï¿½ï¿½ï¿½ï¿½Æµï¿½Ê¼ï¿½ï¿½ã¹«Ê½= 72Mhz/((per+1)*(psc+1))
  * @returns void
  */
 void TIM2_Init(u16 per, u16 psc) // 1ms: per=999,psc=71
@@ -25,16 +26,16 @@ void TIM2_Init(u16 per, u16 psc) // 1ms: per=999,psc=71
 
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE); // Ê¹ÄÜTIM4Ê±ÖÓ
-	TIM_DeInit(TIM2);									 // ¸´Î»TIM4
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE); // Ê¹ï¿½ï¿½TIM4Ê±ï¿½ï¿½
+	TIM_DeInit(TIM2);									 // ï¿½ï¿½Î»TIM4
 
-	TIM_TimeBaseInitStructure.TIM_Period = per;						// ×Ô¶¯×°ÔØÖµ
-	TIM_TimeBaseInitStructure.TIM_Prescaler = psc;					// ·ÖÆµÏµÊý 71-1kHz 35-2kHz
-	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up; // ÉèÖÃÏòÉÏ¼ÆÊýÄ£Ê½
+	TIM_TimeBaseInitStructure.TIM_Period = per;						// ï¿½Ô¶ï¿½×°ï¿½ï¿½Öµ
+	TIM_TimeBaseInitStructure.TIM_Prescaler = psc;					// ï¿½ï¿½ÆµÏµï¿½ï¿½ 71-1kHz 35-2kHz
+	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½Ä£Ê½
 
 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);
-	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE); // ¿ªÆô¶¨Ê±Æ÷ÖÐ¶Ï
-	TIM_Cmd(TIM2, ENABLE);					   // Ê¹ÄÜ¶¨Ê±Æ÷
+	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ð¶ï¿½
+	TIM_Cmd(TIM2, ENABLE);					   // Ê¹ï¿½Ü¶ï¿½Ê±ï¿½ï¿½
 	NVIC_Configuration();
 }
 
@@ -47,8 +48,8 @@ void TIM2_IRQHandler(void)
 		counter++;
 		if (counter >= 1000)
 		{
-			counter = 0; // ÇåÁã¼ÆÊýÆ÷
-			// ¼ÆËãËÙ¶È
+			counter = 0; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
 			speed[0] = (Encode_Value[0] / code_disc) * 3.14 * diameter;
 			speed[1] = (Encode_Value[1] / code_disc) * 3.14 * diameter;
 			speed[2] = (Encode_Value[2] / code_disc) * 3.14 * diameter;

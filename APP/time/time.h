@@ -5,6 +5,7 @@
 #include "stm32f10x.h"
 #include "encode.h"
 
+
 void TIM2_Init(u16 per, u16 psc);
 
 #endif
