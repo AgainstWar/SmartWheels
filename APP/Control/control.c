@@ -229,7 +229,7 @@ void unit_distancemov(uint8_t gradient)
 }
 
 /**
- * @brief   运动函数
+ * @brief   运动控制函数
  * @param   void
  * @return  void
  * @note    读取USART数据后运动响应，主函数中直接调用即可

@@ -1,12 +1,11 @@
 #include "exti.h"
 
-
 static void GPIO_Configuration(void);
 
 /**
- * @brief 初始化外部中断
+ * @brief 初�?�化外部�?�?
  * @param void
- * @note 初始化PD0-3为外部中断
+ * @note 初�?�化PD0-3为�?�部�?�?
  * @returns void
  */
 void SYSTEM_EXTI_Init(void)

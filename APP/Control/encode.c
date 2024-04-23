@@ -19,17 +19,3 @@ void Encode_Init(void)
     Encode_Value[2] = 0;
     Encode_Value[3] = 0;
 }
-
-/**
- * @brief 编码器数据处理
- * @param speed 电机速度
- * @note 编码器数据计算距离
- * @returns void
- */
-void Encode_data_processing(float speed) // TODO: 编码器算距离
-{
-
-    
-}
-
-

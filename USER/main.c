@@ -6,44 +6,25 @@
 #include "time.h"
 #include "MPU6050.h"
 #include "usart.h"
+#include "control.h"
 
-void delay(u32 nms);
+void system_initiation(void);
 
 int main(void)
+{
+	system_initiation();
+	while (1)
+	{
+		Movement();
+	}
+}
+
+void system_initiation(void)
 {
 	Motor_Init();
 	SYSTEM_EXTI_Init();
 	TIM2_Init(999, 71);
 	Encode_Init();
 	mpu6050_init();
-	while (1)
-	{
-		// Motor Test
-		Motor_Speed(0, 80);
-		Motor_Speed(1, 80);
-		Motor_Speed(2, 80);
-		Motor_Speed(3, 80);
-		delay(10);
-		Motor_SetDirection(0, 1);
-		Motor_SetDirection(1, 0);
-		Motor_SetDirection(2, 1);
-		Motor_SetDirection(3, 0);
-		delay(10);
-		Motor_Speed(0, 50);
-		delay(10);
-		Motor_Speed(1, 20);
-		delay(10);
-		Motor_SetDirection(1, 1);
-		delay(10);
-	}
-}
-
-void delay(u32 nms)
-{
-	while (nms--)
-	{
-		u32 i = 72000;
-		while (i--)
-			;
-	}
+	SysTick_Init(72); // 系统频率72MHz
 }

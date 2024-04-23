@@ -2,15 +2,13 @@
 
 u8 Direction[4] = {1, 1, 1, 1};
 u8 Last_Speed[4] = {0, 0, 0, 0};
-u8 Speed[4]={0}; 
+u8 Speed[4] = {0};
 
 /**
  * @brief 初始化电机
  * @param void
- * @note 电机驱动端口INT1/3 均设置为低电平
  * @returns void
  */
-
 void Motor_Init(void)
 {
     // 初始化GPIO
@@ -50,11 +48,7 @@ void Motor_Speed(u8 motor, u16 speed)
     if (motor >= 0 && motor <= 3)
     {
         Last_Speed[motor] = speed;
-        PWM_SetDutyCycle(motor, speed);
-    }
-    else
-    {
-        return;
+        PWM_SetDutyCycle(motor + 1, speed);
     }
 }
 
@@ -72,6 +66,7 @@ void Motor_SetDirection(u8 motor, u8 direction)
     Direction[motor] = direction;
     switch (motor)
     {
+
     case 0:
     {
         if (direction == 0)
@@ -82,6 +77,7 @@ void Motor_SetDirection(u8 motor, u8 direction)
                 GPIO_ResetBits(GPIOD, GPIO_Pin_1);
     }
     break;
+
     case 1:
     {
         if (direction == 0)
@@ -92,6 +88,7 @@ void Motor_SetDirection(u8 motor, u8 direction)
                 GPIO_SetBits(GPIOD, GPIO_Pin_2);
     }
     break;
+
     case 2:
     {
         if (direction == 0)
@@ -102,6 +99,7 @@ void Motor_SetDirection(u8 motor, u8 direction)
                 GPIO_SetBits(GPIOD, GPIO_Pin_4);
     }
     break;
+
     case 3:
     {
         if (direction == 0)
@@ -112,6 +110,7 @@ void Motor_SetDirection(u8 motor, u8 direction)
                 GPIO_SetBits(GPIOD, GPIO_Pin_6);
     }
     break;
+
     default:
         break;
     }
