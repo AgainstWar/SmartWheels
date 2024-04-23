@@ -43,7 +43,7 @@ void Motor_Init(void)
  * @param speed 电机速度 0-100
  * @note 电机速度为0-100，0为停止，100为最大速度
  */
-void Motor_Speed(u8 motor, u16 speed)
+void Motor_Speed(s8 motor, s16 speed)
 {
     if (motor >= 0 && motor <= 3)
     {
@@ -57,7 +57,7 @@ void Motor_Speed(u8 motor, u16 speed)
  * @param motor 电机编号 0-3
  * @param direction 电机转动方向 1为正转，0为反转
  */
-void Motor_SetDirection(u8 motor, u8 direction)
+void Motor_SetDirection(s8 motor, s8 direction)
 {
     if (motor > 3 || motor < 0)
     {

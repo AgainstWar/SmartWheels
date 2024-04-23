@@ -6,7 +6,7 @@ void NVIC_Configuration(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
 
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	   // 设置NVIC中断分组0
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	   // 设置NVIC中断分组2
 	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;	   // 定时器中断通道
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; // 子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // IRQ通道使能

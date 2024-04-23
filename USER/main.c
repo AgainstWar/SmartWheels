@@ -27,4 +27,5 @@ void system_initiation(void)
 	Encode_Init();
 	mpu6050_init();
 	SysTick_Init(72); // 系统频率72MHz
+	USART1_Init(115200);// 串口初始化 波特率115200
 }

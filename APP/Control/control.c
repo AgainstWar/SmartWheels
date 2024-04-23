@@ -1,4 +1,6 @@
 #include <control.h>
+#include "usart.h"
+#include "math.h"
 
 enum dir
 {
@@ -10,14 +12,22 @@ enum dir
 };
 enum dir direction;
 
+#define package_size 8          // 数据包大小
 #define ENCODER_VALUE 95542     // 0.6m对应的编码器值
 uint8_t expect_encoderval = 90; // 编码器期望值
 uint8_t average_value = 0;      // 4个编码器平均值
+
+// 陀螺仪数据变量
 float angle = 0;
-float GyroZ_last, GyroZ;
-uint8_t turn_flag = 0;                // 转向标志位
-uint8_t ditance_gradientmov_flag = 0; // USART 距离数据
-uint8_t displacement;                 // 移动位移
+float GyroZ_last = 0;
+float GyroZ = 0;
+
+uint8_t distance_gradientmov_flag = 0;   // USART 距离数据
+uint8_t last_recieve_data[package_size]; // 上一次接收数据
+
+uint8_t turn_flag = 0; // 转向标志位
+uint8_t displacement;  // 移动位移
+
 // 增量式PID变量
 uint8_t ek[4] = {0};              // 4个电机各自的当前误差
 uint8_t ek1[4] = {0};             // 4个电机各自的前一次误差
@@ -236,9 +246,52 @@ void unit_distancemov(uint8_t gradient)
  */
 void Movement(void)
 {
+    u8 lenth = 0;
     // 使用USART数据对“direction”赋值
-    /* CODE */
+    if (USART1_RX_STA & 0x8000)
+    {
+        u8 current_data[package_size] = {0}; // 当前接收数据
+        u8 diff_flag = 0;                    // 数据变化标志位
+        int i = 0;
 
+        lenth = USART1_RX_STA & 0x3fff; // 获取数据长度
+        for (i = 0; i < lenth; i++)
+        {
+            current_data[i] = USART1_RX_BUF[i]; // 获取数据
+        }
+        for (i = 0; i < lenth; i++)
+        {
+            if (current_data[i] == last_recieve_data[i])
+                continue;
+            else
+            {
+                last_recieve_data[i] = current_data[i];
+                diff_flag = 1;
+            }
+        }
+
+        if (diff_flag == 1)
+        {
+            // 判断运动方向
+            // N-0b00 S-0b01 E-0b11 W-0b10
+            u8 temp = 0;
+            for (i = 0; i < 2; i++)
+            {
+                temp += pow(2, 1 - i) * current_data[i];
+            }
+            direction = (enum dir)temp; // 赋值
+
+            // 判断距离数据
+            temp = 0;
+            for (i = 2; i < 6; i++)
+            {
+                temp += pow(2, 6 - i) * current_data[i];
+            }
+            distance_gradientmov_flag = temp; // 赋值
+        }
+
+        USART1_RX_STA = 0; // 清零
+    }
     // 检测运动方向
     switch (direction)
     {
@@ -277,6 +330,6 @@ void Movement(void)
     // 移动计算得出的距离
     if (direction == run)
     {
-        unit_distancemov(ditance_gradientmov_flag);
+        unit_distancemov(distance_gradientmov_flag);
     }
 }

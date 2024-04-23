@@ -84,11 +84,16 @@ static void TIM3_Configuration(void)
  * @param duty 占空比 %0-100
  * @returns void
  */
-void PWM_SetDutyCycle(u16 channel, u16 duty)
+void PWM_SetDutyCycle(u16 channel, s16 duty)
 {
     duty = duty * 10;
-    duty = duty > 1000 ? 1000 : duty;
-    duty = duty < 0 ? 0 : duty;
+
+    // 限幅
+    if (duty > 1000)
+        duty = 1000;
+
+    if (duty < 0)
+        duty = 0;
 
     switch (channel)
     {

@@ -4,6 +4,6 @@
 #include "stm32f10x.h"
 
 void PWM_Init(void);
-void PWM_SetDutyCycle(u16 channel, u16 duty);
+void PWM_SetDutyCycle(u16 channel, s16 duty);
 
 #endif
