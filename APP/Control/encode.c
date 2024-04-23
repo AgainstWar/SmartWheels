@@ -28,4 +28,8 @@ void Encode_Init(void)
  */
 void Encode_data_processing(float speed) // TODO: 编码器算距离
 {
+
+    
 }
+
+

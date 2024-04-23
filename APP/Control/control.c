@@ -1,13 +1,15 @@
 #include <control.h>
 
-#define ENCODER_VALUE 79618 // 0.5m对应的编码器值
-uint8_t expect_encoderval;  // 编码器期望值
+enum dir{N=0b00,S=0b01,E=0b11,W=0b10,run=0b110}direction;
+
+#define ENCODER_VALUE   95542  // 0.6m对应的编码器值
+uint8_t expect_encoderval=90;  // 编码器期望值
+uint8_t average_value = 0;     // 4个编码器平均值 
 float angle = 0;
 float GyroZ_last, GyroZ;
-uint8_t turnleft_flag = 0, turnright_flag = 0; // 接收到的转向标志位
-uint8_t ditance_gradientmov_flag = 0;          // 接收到的梯度距离移动标志位
-uint8_t displacement;                          // 移动位移标志位
-
+uint8_t turn_flag = 0; // 转向标志位
+uint8_t ditance_gradientmov_flag = 0;          // USART 距离数据
+uint8_t displacement;                          // 移动位移
 // 增量式PID变量
 uint8_t ek[4] = {0};              // 4个电机各自的当前误差
 uint8_t ek1[4] = {0};             // 4个电机各自的前一次误差
@@ -58,7 +60,7 @@ void Turn_left(void)
     MPU6050_data_processing();
 
     // 陀螺仪安装影响角速度方向，默认向左转角速度为正
-    if (angle <= 90 && turnleft_flag == 1)
+    if (angle <= 90 && turn_flag == 1)
     {
         // 角度计算
         angle += GyroZ;
@@ -71,7 +73,7 @@ void Turn_left(void)
     }
     else if (angle > 90)
     {
-        turnleft_flag = 0;
+        turn_flag = 0;
         angle = 0;
         Motor_Speed(0, 0);
         Motor_Speed(1, 0);
@@ -79,6 +81,7 @@ void Turn_left(void)
         Motor_Speed(3, 0);
     }
 }
+
 
 /**
  * @brief   原地右转90°
@@ -101,7 +104,7 @@ void Turn_right(void)
     MPU6050_data_processing();
 
     // 陀螺仪安装影响角速度方向，默认向左转角速度为正
-    if (angle > -90 && turnright_flag == 1)
+    if (angle > -90 && turn_flag == 2)
 
     {
         // 角度计算
@@ -115,7 +118,7 @@ void Turn_right(void)
     }
     else if (angle < -90)
     {
-        turnright_flag = 0;
+        turn_flag = 0;
         angle = 0;
         Motor_Speed(0, 0);
         Motor_Speed(1, 0);
@@ -124,11 +127,42 @@ void Turn_right(void)
     }
 }
 
+
+/**
+ * @brief 前进
+ * @param void
+ * @return void
+ * @note 4电机正转
+ */
+void Move_forward(void)
+{
+    // 设置电机转向
+    Motor_SetDirection(0, 1);
+    Motor_SetDirection(1, 1);
+    Motor_SetDirection(2, 1);
+    Motor_SetDirection(3, 1);
+}
+
+
+/**
+ * @brief 后退
+ * @return void
+ * @note 4电机反转
+ */
+void Move_back(void)
+{
+    // 设置电机转向
+    Motor_SetDirection(0, 0);
+    Motor_SetDirection(1, 0);
+    Motor_SetDirection(2, 0);
+    Motor_SetDirection(3, 0);
+}
+
+
 /**
  * @brief   增量式PID
  * @param   Expect_Encode_Value    编码器期望值
  * @param   num                    电机编号0-3
- * @note   在对应编码器中断程序中调用即可
  * @return  PID增量输出
  */
 uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
@@ -152,54 +186,91 @@ uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
     return Increament_Out[num];
 }
 
+
 /**
- * @brief   梯度距离运动
- * @note    理论计算0.5m距离单个编码器累计值约为79618
- * @note    在主函数中调用即可
+ * @brief   运动计算距离后停止
+ * @param   gradient 梯度0-10
+ * @note    理论计算0.6m距离单个编码器累计值约为95542
  * @return  void
  */
-void unit_distance(void)
+void unit_distancemov(uint8_t gradient)
 {
+    int i=0;
     // 计算四个编码器平均编码值
-    uint8_t average_value = 0;
-
-    // 计算平均值
-    average_value += (Encode_Value[0] / 4);
-    average_value += (Encode_Value[1] / 4);
-    average_value += (Encode_Value[2] / 4);
-    average_value += (Encode_Value[3] / 4);
-
-    if (displacement == 0)
+    average_value += ((Encode_Value[0] + Encode_Value[1] + Encode_Value[2] + Encode_Value[3]))/4;
+    
+    if (gradient == 0)
     {
         Motor_Speed(0, 0);
         Motor_Speed(1, 0);
         Motor_Speed(2, 0);
         Motor_Speed(3, 0);
     }
-    else if (displacement >= 1 && displacement <= 10)
+    else if (gradient!=0)
     {
-        average_value += average_value;
-        if (average_value > displacement * ENCODER_VALUE)
+        displacement += average_value;//编码器值累加计算路程
+        for(i=0;i<4;i++)              //PID计算占空比
         {
-            ditance_gradientmov_flag = 0;
-            displacement = 0;
-            average_value = 0;
+            speed[i]=PID_Increasement(expect_encoderval,i);
+            Motor_Speed(0, speed[0]);
+            Motor_Speed(1, speed[1]);
+            Motor_Speed(2, speed[2]);
+            Motor_Speed(3, speed[3]);
+        }
+        if (displacement > gradient * ENCODER_VALUE)
+        {
+            gradient = 0;                   //标志位清零
+            displacement = 0;               //位移计数清零
+            
         }
     }
 }
 
 /**
- * @brief 前进
- * @param level 前进距离，从1到10
- * @return void
- * @note 4电机正转
- * @todo 编码器算距离/编码器陀螺仪融合算距离
+ * @brief   运动函数
+ * @param   void
+ * @return  void
+ * @note    读取USART数据后运动响应，主函数中直接调用即可
  */
-void Move_forward(u8 level)
+void Movement(void)
 {
-    // 设置电机转向
-    Motor_SetDirection(0, 1);
-    Motor_SetDirection(1, 1);
-    Motor_SetDirection(2, 1);
-    Motor_SetDirection(3, 1);
+    //使用USART数据对“direction”赋值
+    /* CODE */
+
+
+    //检测运动方向
+    switch (direction)
+    {
+    //前进    
+    case N:{
+                Move_forward();
+                direction=run;//退出状态机
+    }break;
+    //后退
+    case S:{
+                Move_back();
+                direction=run;
+    }break;
+    //右
+    case E:{
+                Turn_right();
+                direction=run;
+    }break;
+    //左
+    case W:{
+                Turn_left();
+                direction=run;
+    }break;
+    default:
+        break;
+    }
+
+    //移动计算得出的距离
+    if(direction==run)
+    {
+        unit_distancemov(ditance_gradientmov_flag);
+    }
 }
+
+
+
