@@ -1,15 +1,23 @@
 #include <control.h>
 
-enum dir{N=0b00,S=0b01,E=0b11,W=0b10,run=0b110}direction;
+enum dir
+{
+    N = 0,
+    S = 1,
+    E = 3,
+    W = 2,
+    run = 4,
+};
+enum dir direction;
 
-#define ENCODER_VALUE   95542  // 0.6m对应的编码器值
-uint8_t expect_encoderval=90;  // 编码器期望值
-uint8_t average_value = 0;     // 4个编码器平均值 
+#define ENCODER_VALUE 95542     // 0.6m对应的编码器值
+uint8_t expect_encoderval = 90; // 编码器期望值
+uint8_t average_value = 0;      // 4个编码器平均值
 float angle = 0;
 float GyroZ_last, GyroZ;
-uint8_t turn_flag = 0; // 转向标志位
-uint8_t ditance_gradientmov_flag = 0;          // USART 距离数据
-uint8_t displacement;                          // 移动位移
+uint8_t turn_flag = 0;                // 转向标志位
+uint8_t ditance_gradientmov_flag = 0; // USART 距离数据
+uint8_t displacement;                 // 移动位移
 // 增量式PID变量
 uint8_t ek[4] = {0};              // 4个电机各自的当前误差
 uint8_t ek1[4] = {0};             // 4个电机各自的前一次误差
@@ -82,7 +90,6 @@ void Turn_left(void)
     }
 }
 
-
 /**
  * @brief   原地右转90°
  * @param   void
@@ -127,7 +134,6 @@ void Turn_right(void)
     }
 }
 
-
 /**
  * @brief 前进
  * @param void
@@ -143,7 +149,6 @@ void Move_forward(void)
     Motor_SetDirection(3, 1);
 }
 
-
 /**
  * @brief 后退
  * @return void
@@ -157,7 +162,6 @@ void Move_back(void)
     Motor_SetDirection(2, 0);
     Motor_SetDirection(3, 0);
 }
-
 
 /**
  * @brief   增量式PID
@@ -186,7 +190,6 @@ uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
     return Increament_Out[num];
 }
 
-
 /**
  * @brief   运动计算距离后停止
  * @param   gradient 梯度0-10
@@ -195,10 +198,10 @@ uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
  */
 void unit_distancemov(uint8_t gradient)
 {
-    int i=0;
+    int i = 0;
     // 计算四个编码器平均编码值
-    average_value += ((Encode_Value[0] + Encode_Value[1] + Encode_Value[2] + Encode_Value[3]))/4;
-    
+    average_value += ((Encode_Value[0] + Encode_Value[1] + Encode_Value[2] + Encode_Value[3])) / 4;
+
     if (gradient == 0)
     {
         Motor_Speed(0, 0);
@@ -206,12 +209,12 @@ void unit_distancemov(uint8_t gradient)
         Motor_Speed(2, 0);
         Motor_Speed(3, 0);
     }
-    else if (gradient!=0)
+    else if (gradient != 0)
     {
-        displacement += average_value;//编码器值累加计算路程
-        for(i=0;i<4;i++)              //PID计算占空比
+        displacement += average_value; // 编码器值累加计算路程
+        for (i = 0; i < 4; i++)        // PID计算占空比
         {
-            speed[i]=PID_Increasement(expect_encoderval,i);
+            speed[i] = PID_Increasement(expect_encoderval, i);
             Motor_Speed(0, speed[0]);
             Motor_Speed(1, speed[1]);
             Motor_Speed(2, speed[2]);
@@ -219,9 +222,8 @@ void unit_distancemov(uint8_t gradient)
         }
         if (displacement > gradient * ENCODER_VALUE)
         {
-            gradient = 0;                   //标志位清零
-            displacement = 0;               //位移计数清零
-            
+            gradient = 0;     // 标志位清零
+            displacement = 0; // 位移计数清零
         }
     }
 }
@@ -234,43 +236,47 @@ void unit_distancemov(uint8_t gradient)
  */
 void Movement(void)
 {
-    //使用USART数据对“direction”赋值
+    // 使用USART数据对“direction”赋值
     /* CODE */
 
-
-    //检测运动方向
+    // 检测运动方向
     switch (direction)
     {
-    //前进    
-    case N:{
-                Move_forward();
-                direction=run;//退出状态机
-    }break;
-    //后退
-    case S:{
-                Move_back();
-                direction=run;
-    }break;
-    //右
-    case E:{
-                Turn_right();
-                direction=run;
-    }break;
-    //左
-    case W:{
-                Turn_left();
-                direction=run;
-    }break;
+    // 前进
+    case N:
+    {
+        Move_forward();
+        direction = run; // 退出状态机
+    }
+    break;
+    // 后退
+    case S:
+    {
+        Move_back();
+        direction = run;
+    }
+    break;
+    // 右
+    case E:
+    {
+        Turn_right();
+        direction = run;
+    }
+    break;
+    // 左
+    case W:
+    {
+        Turn_left();
+        direction = run;
+    }
+    break;
     default:
         break;
     }
 
-    //移动计算得出的距离
-    if(direction==run)
+    // 移动计算得出的距离
+    if (direction == run)
     {
         unit_distancemov(ditance_gradientmov_flag);
     }
 }
-
-
-
