@@ -6,8 +6,8 @@ enum dir
 {
     N = 0,
     S = 1,
-    E = 3,
     W = 2,
+    E = 3,
     run = 4,
 };
 enum dir direction;
@@ -202,7 +202,7 @@ uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
 
 /**
  * @brief   运动计算距离后停止
- * @param   gradient 梯度0-10
+ * @param   gradient 梯度0-10,对应 distance_gradientmov_flag 标志位
  * @note    理论计算0.6m距离单个编码器累计值约为95542
  * @return  void
  */
@@ -210,7 +210,7 @@ void unit_distancemov(uint8_t gradient)
 {
     int i = 0;
     // 计算四个编码器平均编码值
-    average_value += ((Encode_Value[0] + Encode_Value[1] + Encode_Value[2] + Encode_Value[3])) / 4;
+    average_value += (Encode_Value[0] + Encode_Value[1] + Encode_Value[2] + Encode_Value[3]) / 4;
 
     if (gradient == 0)
     {
@@ -247,49 +247,49 @@ void unit_distancemov(uint8_t gradient)
 void Movement(void)
 {
     u8 lenth = 0;
+    u8 num[4]={0};
+    int i=0;
     // 使用USART数据对“direction”赋值
     if (USART1_RX_STA & 0x8000)
     {
         u8 current_data[package_size] = {0}; // 当前接收数据
-        u8 diff_flag = 0;                    // 数据变化标志位
+        // u8 diff_flag = 0;                    // 数据变化标志位
         int i = 0;
 
-        lenth = USART1_RX_STA & 0x3fff; // 获取数据长度
+        lenth = USART1_RX_STA & 0x3fff;     // 获取数据长度
         for (i = 0; i < lenth; i++)
         {
-            current_data[i] = USART1_RX_BUF[i]; // 获取数据
+            current_data[i] = USART1_RX_BUF[i]; // 复制获取数据
         }
-        for (i = 0; i < lenth; i++)
+
+    //判断运动方向    
+    // N-0b00 S-0b01 E-0b11 W-0b10
+    if(current_data[0]=='N')
+    {
+        direction =(enum dir)N;
+    }
+    else if(current_data[0]=='S')
+    {
+        direction =(enum dir)S;
+    }
+    else if(current_data[0]=='W')
+    {
+        direction =(enum dir)W;
+    }
+    else if(current_data[0]=='E')
+    {
+        direction =(enum dir)E;
+    }
+    //计算运动距离
+    for(i=0;i<4;i++)
+    {
+        if(current_data[i+1]=='1')
         {
-            if (current_data[i] == last_recieve_data[i])
-                continue;
-            else
-            {
-                last_recieve_data[i] = current_data[i];
-                diff_flag = 1;
-            }
+            num[i]= pow(2,i);
         }
-
-        if (diff_flag == 1)
-        {
-            // 判断运动方向
-            // N-0b00 S-0b01 E-0b11 W-0b10
-            u8 temp = 0;
-            for (i = 0; i < 2; i++)
-            {
-                temp += pow(2, 1 - i) * current_data[i];
-            }
-            direction = (enum dir)temp; // 赋值
-
-            // 判断距离数据
-            temp = 0;
-            for (i = 2; i < 6; i++)
-            {
-                temp += pow(2, 6 - i) * current_data[i];
-            }
-            distance_gradientmov_flag = temp; // 赋值
-        }
-
+        else num[i] = 0; 
+        distance_gradientmov_flag +=num[i];
+    }
         USART1_RX_STA = 0; // 清零
     }
     // 检测运动方向
