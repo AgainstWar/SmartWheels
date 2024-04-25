@@ -1,6 +1,7 @@
 #include <control.h>
 #include "usart.h"
 #include "math.h"
+#include "stdlib.h"
 
 enum dir
 {
@@ -247,7 +248,8 @@ void unit_distancemov(uint8_t gradient)
 void Movement(void)
 {
     u8 lenth = 0;
-    u8 num[4]={0};
+    u8 num[2]={0};
+    int distance=0;
     int i=0;
     // 使用USART数据对“direction”赋值
     if (USART1_RX_STA & 0x8000)
@@ -281,14 +283,11 @@ void Movement(void)
         direction =(enum dir)E;
     }
     //计算运动距离
-    for(i=0;i<4;i++)
+    for(i=0;i<2;i++)
     {
-        if(current_data[i+1]=='1')
-        {
-            num[i]= pow(2,i);
-        }
-        else num[i] = 0; 
-        distance_gradientmov_flag +=num[i];
+        num[i]=current_data[i+1];//提取十进制数字字符串
+
+        distance_gradientmov_flag = atoi(num);//atoi()函数将字符串数字转变为整型十进制数
     }
         USART1_RX_STA = 0; // 清零
     }
