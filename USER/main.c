@@ -21,11 +21,10 @@ int main(void)
 
 void system_initiation(void)
 {
-	Motor_Init();
-	SYSTEM_EXTI_Init();
-	TIM2_Init(999, 71);
-	Encode_Init();
-	mpu6050_init();
-	SysTick_Init(72); // 系统频率72MHz
-	USART1_Init(115200);// 串口初始化 波特率115200
+	SysTick_Init(72);	 // 系统频率72MHz
+	USART1_Init(115200); // 串口初始化 波特率115200
+	TIM2_Init(999, 71);	 // 定时器2初始化
+	mpu6050_init();		 // 陀螺仪初始化
+	Motor_Init();		 // 电机相关函数初始化
+	Encode_Init();		 // 编码器相关函数初始化
 }

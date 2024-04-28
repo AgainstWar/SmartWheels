@@ -43,7 +43,10 @@ void TIM2_IRQHandler(void)
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET)
 	{
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-
+		Encode_Value[0]++;
+		Encode_Value[1]++;
+		Encode_Value[2]++;
+		Encode_Value[3]++;
 		counter++;
 		if (counter >= 1000)
 		{
