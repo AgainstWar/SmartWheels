@@ -112,7 +112,7 @@ void Turn_left(void)
 void Turn_right(void)
 {
     // 获取陀螺仪数据
-    // mpu6050_get_gyro();
+    mpu6050_get_gyro();
 
     // 设置电机转向
     Motor_SetDirection(0, 1);
@@ -121,7 +121,7 @@ void Turn_right(void)
     Motor_SetDirection(3, 0);
 
     // 处理加速度
-    // MPU6050_data_processing();
+    MPU6050_data_processing();
 
     // 陀螺仪安装影响角速度方向，默认向左转角速度为正
     if (angle > -90 && turn_flag == 2)
