@@ -16,10 +16,10 @@ void SYSTEM_EXTI_Init(void)
 	GPIO_Configuration();
 
 
-	// GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1); // 选择GPIOA_1管脚用作外部中断线
-	// GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource2); // 选择GPIOA_2管脚用作外部中断线
-	// GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource3); // 选择GPIOA_3管脚用作外部中断线
-	// GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource4); // 选择GPIOA_4管脚用作外部中断线
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1); // 选择GPIOA_1管脚用作外部中断线
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource2); // 选择GPIOA_2管脚用作外部中断线
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource3); // 选择GPIOA_3管脚用作外部中断线
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource4); // 选择GPIOA_4管脚用作外部中断线
 
 	// EXTI2 NVIC 配置
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI2_IRQn;		  // EXTI2中断通道

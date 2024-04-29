@@ -2,6 +2,9 @@
 #include "usart.h"
 #include "math.h"
 #include "stdlib.h"
+#include "LED.h"
+#include "SysTick.h"
+
 
 enum dir
 {
@@ -22,21 +25,21 @@ float angle = 0;
 float GyroZ_last = 0;
 float GyroZ = 0;
 
-uint8_t distance_gradientmov_flag = 0; // USART 距离数据
-uint8_t last_recieve_data[8];          // 上一次接收数据
+uint16_t distance_gradientmov_flag = 0; //通过串口数据计算得到的行动距离数据
 
-uint8_t turn_flag = 0; // 转向标志位
-uint8_t displacement;  // 移动位移
+uint8_t turn_flag = 0;     // 转向标志位
+uint8_t displacement = 0;  // 移动位移
 
 // 增量式PID变量
-uint8_t ek[4] = {0};              // 4个电机各自的当前误差
-uint8_t ek1[4] = {0};             // 4个电机各自的前一次误差
-uint8_t ek2[4] = {0};             // 4个电机各自的前前次误差
+s16 ek[4] = {0};              // 4个电机各自的当前误差
+s16 ek1[4] = {0};             // 4个电机各自的前一次误差
+s16 ek2[4] = {0};             // 4个电机各自的前前次误差
 uint16_t Increament[4] = {0};     // 计算得到的增量值
 uint16_t Increament_Out[4] = {0}; // 增量输出
 
-// 增量式PID 参数数组     P   I   D  0-3行对应电机编号，P、I、D对应各电机参数
+// 增量式PID 参数数组     
 double PID_Para[4][3] = {
+//  P  I  D  
     8, 2, 25, // 电机0参数
     8, 2, 25, // 电机1参数
     8, 2, 25, // 电机2参数
@@ -109,7 +112,7 @@ void Turn_left(void)
 void Turn_right(void)
 {
     // 获取陀螺仪数据
-    mpu6050_get_gyro();
+    // mpu6050_get_gyro();
 
     // 设置电机转向
     Motor_SetDirection(0, 1);
@@ -118,7 +121,7 @@ void Turn_right(void)
     Motor_SetDirection(3, 0);
 
     // 处理加速度
-    MPU6050_data_processing();
+    // MPU6050_data_processing();
 
     // 陀螺仪安装影响角速度方向，默认向左转角速度为正
     if (angle > -90 && turn_flag == 2)
@@ -208,7 +211,7 @@ uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
  */
 void unit_distancemov(uint8_t gradient)
 {
-    int i = 0;
+    int i=0;
     // 计算四个编码器平均编码值
     average_value += (Encode_Value[0] + Encode_Value[1] + Encode_Value[2] + Encode_Value[3]) / 4;
 
@@ -222,17 +225,19 @@ void unit_distancemov(uint8_t gradient)
     else if (gradient != 0)
     {
         displacement += average_value; // 编码器值累加计算路程
-        for (i = 0; i < 4; i++)        // PID计算占空比
+        // PID计算占空比
+        for(i=0;i<4;i++)
         {
             speed[i] = PID_Increasement(expect_encoderval, i);
-            Motor_Speed(0, speed[0]);
-            Motor_Speed(1, speed[1]);
-            Motor_Speed(2, speed[2]);
-            Motor_Speed(3, speed[3]);
         }
+        Motor_Speed(0, speed[0]);
+        Motor_Speed(1, speed[1]);
+        Motor_Speed(2, speed[2]);
+        Motor_Speed(3, speed[3]);
+
         if (displacement > gradient * ENCODER_VALUE)
         {
-            gradient = 0;     // 标志位清零
+            gradient = 0;     // 标志位清零,小车停止
             displacement = 0; // 位移计数清零
         }
     }
@@ -247,16 +252,13 @@ void unit_distancemov(uint8_t gradient)
 void Movement(void)
 {
     u8 length = 0;
-    u8 num[2] = {0};
-    int distance = 0;
     int i = 0;
+    char num[2]={0};
+
     // 使用USART数据对“direction”赋值
     if (USART1_RX_STA & 0x8000)
     {
-        u8 current_data[8] = {0}; // 当前接收数据
-        // u8 diff_flag = 0;                    // 数据变化标志位
-        int i = 0;
-
+        uint16_t current_data[8] = {0}; // 当前接收数据
         length = USART1_RX_STA & 0x3fff; // 获取数据长度
         for (i = 0; i < length; i++)
         {
@@ -281,13 +283,17 @@ void Movement(void)
         {
             direction = (enum dir)E;
         }
-        // 计算运动距离
-        for (i = 0; i < 2; i++)
-        {
-            num[i] = current_data[i + 1]; // 提取十进制数字字符串
 
-            // distance_gradientmov_flag = atoi(num);//atoi()函数将字符串数字转变为整型十进制数
-        }
+        // 计算运动距离
+       for (i = 0; i < 2; i++)
+       {
+           num[i] = current_data[i + 1]; // 提取十进制数字字符串
+       }
+       distance_gradientmov_flag = atoi(num);
+       //atoi()函数将字符串数字转变为整型十进制数
+        USART_SendData(USART1, USART1_RX_BUF[distance_gradientmov_flag]); 
+		delay_ms(1000);
+		while(USART_GetFlagStatus(USART1,USART_FLAG_TC)!=SET);//等待发送结束
         USART1_RX_STA = 0; // 清零
     }
     // 检测运动方向
@@ -295,7 +301,8 @@ void Movement(void)
     {
     // 前进
     case N:
-    {
+    { 
+        LED2=!LED2;
         Move_forward();
         direction = run; // 退出状态机
     }
@@ -303,6 +310,7 @@ void Movement(void)
     // 后退
     case S:
     {
+        LED1=!LED1;
         Move_back();
         direction = run;
     }
@@ -310,6 +318,9 @@ void Movement(void)
     // 右
     case E:
     {
+        turn_flag=2;
+        LED1=!LED1;
+        LED2=!LED2;
         Turn_right();
         direction = run;
     }
@@ -317,7 +328,11 @@ void Movement(void)
     // 左
     case W:
     {
+        turn_flag=1;
         Turn_left();
+        LED1=!LED1;
+        delay_ms(5000);
+        LED2=!LED2;
         direction = run;
     }
     break;
@@ -326,8 +341,8 @@ void Movement(void)
     }
 
     // 移动计算得出的距离
-    if (direction == run)
-    {
-        unit_distancemov(distance_gradientmov_flag);
-    }
+   if (direction == run)
+   {
+       unit_distancemov(distance_gradientmov_flag);
+   }
 }
