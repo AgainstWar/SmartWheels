@@ -9,7 +9,8 @@ extern float speed[4];
 extern const float diameter;
 extern const float code_disc;
 
+void Encode_Clr(void);
 void Encode_Init(void);
-void Encode_data_processing(float speed);
+
 
 #endif

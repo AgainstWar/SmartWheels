@@ -1,8 +1,6 @@
 #include <motor.h>
 
 u8 Direction[4] = {1, 1, 1, 1};
-u8 Last_Speed[4] = {0, 0, 0, 0};
-u8 Speed[4] = {0};
 
 /**
  * @brief 初始化电机
@@ -47,7 +45,6 @@ void Motor_Speed(s8 motor, s16 speed)
 {
     if (motor >= 0 && motor <= 3)
     {
-        Last_Speed[motor] = speed;
         PWM_SetDutyCycle(motor + 1, speed);
     }
 }

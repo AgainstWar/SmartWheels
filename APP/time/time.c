@@ -43,24 +43,7 @@ void TIM2_IRQHandler(void)
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET)
 	{
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-		Encode_Value[0]++;
-		Encode_Value[1]++;
-		Encode_Value[2]++;
-		Encode_Value[3]++;
-		counter++;
-		if (counter >= 1000)
-		{
-			counter = 0; // 清零计数器
-			// 计算速度
-			speed[0] = (Encode_Value[0] / code_disc) * 3.14 * diameter;
-			speed[1] = (Encode_Value[1] / code_disc) * 3.14 * diameter;
-			speed[2] = (Encode_Value[2] / code_disc) * 3.14 * diameter;
-			speed[3] = (Encode_Value[3] / code_disc) * 3.14 * diameter;
 
-			Encode_Value[0] = 0;
-			Encode_Value[1] = 0;
-			Encode_Value[2] = 0;
-			Encode_Value[3] = 0;
-		}
+		counter++;
 	}
 }

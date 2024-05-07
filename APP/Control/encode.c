@@ -2,7 +2,7 @@
 
 u32 Encode_Value[4] = {0, 0, 0, 0};
 float speed[4] = {0};
-const float diameter = 4E-2;  // 轮胎直径 4cm
+const float diameter = 6E-2;  // 轮胎直径 6cm
 const float code_disc = 20.0; // 编码盘格数
 
 /**
@@ -28,3 +28,22 @@ void Encode_Init(void)
     Encode_Value[2] = 0;
     Encode_Value[3] = 0;
 }
+/**
+ * @brief   编码器计数清零
+ * @param   void
+ * @note 编码器计数清零
+ * @return void
+*/
+void Encode_Clr(void)
+{
+
+			//counter = 0; // 清零计数器
+			Encode_Value[0] = 0;
+			Encode_Value[1] = 0;
+			Encode_Value[2] = 0;
+			Encode_Value[3] = 0;
+		
+}
+
+
+

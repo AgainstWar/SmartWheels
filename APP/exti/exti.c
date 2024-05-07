@@ -15,7 +15,6 @@ void SYSTEM_EXTI_Init(void)
 
 	GPIO_Configuration();
 
-
 	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1); // 选择GPIOA_1管脚用作外部中断线
 	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource2); // 选择GPIOA_2管脚用作外部中断线
 	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource3); // 选择GPIOA_3管脚用作外部中断线
@@ -78,6 +77,7 @@ void EXTI1_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line1) == 1)
 	{
+		Encode_Value[0]++;
 	}
 	EXTI_ClearITPendingBit(EXTI_Line1);
 }
@@ -91,6 +91,7 @@ void EXTI2_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line2) == 1)
 	{
+		Encode_Value[1]++;
 	}
 	EXTI_ClearITPendingBit(EXTI_Line2);
 }
@@ -104,6 +105,7 @@ void EXTI3_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line3) == 1)
 	{
+		Encode_Value[2]++;
 	}
 	EXTI_ClearITPendingBit(EXTI_Line3);
 }
@@ -117,6 +119,7 @@ void EXTI4_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line4) == 1)
 	{
+		Encode_Value[3]++;
 	}
 	EXTI_ClearITPendingBit(EXTI_Line4);
 }
