@@ -22,7 +22,7 @@ void Turn_left(void);
 void Turn_right(void);
 void Move_forward(void);
 void Move_back(void);
-void unit_distancemov(void);
+void unit_distancemov(uint8_t gradient);
 
 
 extern uint8_t turnleft_flag , turnright_flag ;

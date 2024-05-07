@@ -142,7 +142,7 @@ void Turn_right(void)
 /**
  * @brief 
  * 
- */
+ *
  * @param void
  * @return void
  * @note 4电机正转
@@ -236,7 +236,7 @@ void unit_distancemov(uint8_t gradient)
         Motor_Speed(2, speed[2]);
         Motor_Speed(3, speed[3]);
 
-        else if (displacement > gradient * ENCODER_VALUE)
+         if(displacement>gradient * ENCODER_VALUE)
         {
             gradient = 0;     // 标志位清零,小车停止
             displacement = 0; // 位移计数清零
