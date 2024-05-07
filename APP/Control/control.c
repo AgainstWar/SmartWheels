@@ -5,14 +5,7 @@
 #include "LED.h"
 #include "SysTick.h"
 
-enum dir
-{
-    N = 0,
-    S = 1,
-    W = 2,
-    E = 3,
-    run = 4,
-};
+
 enum dir direction;
 
 #define ENCODER_VALUE 67        // 0.6m对应的编码器值
@@ -33,8 +26,8 @@ uint8_t displacement = 0; // 移动位移
 s16 ek[4] = {0};                  // 4个电机各自的当前误差
 s16 ek1[4] = {0};                 // 4个电机各自的前一次误差
 s16 ek2[4] = {0};                 // 4个电机各自的前前次误差
-uint16_t Increament[4] = {0};     // 计算得到的增量值
-uint16_t Increament_Out[4] = {0}; // 增量输出
+int16_t Increament[4] = {0};     // 计算得到的增量值
+int16_t Increament_Out[4] = {0}; // 增量输出
 
 // 增量式PID 参数数组
 double PID_Para[4][3] = {
@@ -147,7 +140,9 @@ void Turn_right(void)
 }
 
 /**
- * @brief 前进
+ * @brief 
+ * 
+ */
  * @param void
  * @return void
  * @note 4电机正转
@@ -181,7 +176,7 @@ void Move_back(void)
  * @param   num                    电机编号0-3
  * @return  PID增量输出
  */
-uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
+s16 PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
 {
     // 计算当前误差
     ek[num] = Expect_Encode_Value - Encode_Value[num];
@@ -195,9 +190,15 @@ uint16_t PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
     ek2[num] = ek1[num];
     ek1[num] = ek[num];
 
-    // 限幅
+    // 限幅 和 换向
     if (Increament_Out[num] > 100)
-        Increament_Out[num] = 100;
+        {
+            Increament_Out[num] = 100;
+        }
+    else if(Increament_Out[num]<0)
+    {
+        Increament_Out[num] = Increament_Out[num] *(-1);    
+    }
 
     return Increament_Out[num];
 }
@@ -214,27 +215,28 @@ void unit_distancemov(uint8_t gradient)
     // 计算四个编码器平均编码值
     average_value = (Encode_Value[0] + Encode_Value[1] + Encode_Value[2] + Encode_Value[3]) / 4;
 
-    if (gradient == 0)
+    if (gradient == 0)//静止 or 停止
     {
         Motor_Speed(0, 0);
         Motor_Speed(1, 0);
         Motor_Speed(2, 0);
         Motor_Speed(3, 0);
     }
+    
     else if (gradient != 0)
     {
         displacement += average_value; // 编码器值累加计算路程
         // PID计算占空比
-        for (i = 0; i < 4; i++)
-        {
+            for (i = 0; i < 4; i++)
+            {
             speed[i] = PID_Increasement(expect_encoderval, i);
-        }
+            }
         Motor_Speed(0, speed[0]);
         Motor_Speed(1, speed[1]);
         Motor_Speed(2, speed[2]);
         Motor_Speed(3, speed[3]);
 
-        if (displacement > gradient * ENCODER_VALUE)
+        else if (displacement > gradient * ENCODER_VALUE)
         {
             gradient = 0;     // 标志位清零,小车停止
             displacement = 0; // 位移计数清零
@@ -288,11 +290,9 @@ void Movement(void)
         {
             num[i] = current_data[i + 1]; // 提取十进制数字字符串
         }
-        distance_gradientmov_flag = atoi(num);
-        // atoi()函数将字符串数字转变为整型十进制数
-        USART_SendData(USART1, USART1_RX_BUF[(char)speed[0]]);
-        while (USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET)
-            ;              // 等待发送结束
+        distance_gradientmov_flag = atoi(num); // 将字符串数字转变为整型十进制数
+        // USART_SendData(USART1, USART1_RX_BUF[(char)speed[0]]);
+        // while (USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET); // 等待发送完成
         USART1_RX_STA = 0; // 清零
     }
     // 检测运动方向
@@ -301,51 +301,50 @@ void Movement(void)
     // 前进
     case N:
     {
-        Encode_Clr(); // 编码器计数清零
         LED2 = !LED2;
         Move_forward();
         direction = run; // 退出状态机
+        Encode_Clr(); // 编码器计数清零
     }
     break;
     // 后退
     case S:
     {
-        Encode_Clr();
         LED1 = !LED1;
         Move_back();
         direction = run;
+        Encode_Clr();
     }
     break;
     // 右
     case E:
     {
-        Encode_Clr();
         turn_flag = 2;
         Turn_right();
         LED1 = !LED1;
         LED2 = !LED2;
         direction = run;
+        Encode_Clr();
     }
     break;
     // 左
     case W:
     {
-        Encode_Clr();
         turn_flag = 1;
         Turn_left();
         LED1 = !LED1;
         LED2 = !LED2;
-
         direction = run;
+        Encode_Clr();
     }
     break;
     default:
         break;
     }
-
-    // 移动计算得出的距离
+    	 // 移动计算得出的距离
     if (direction == run)
     {
         unit_distancemov(distance_gradientmov_flag);
     }
+
 }
