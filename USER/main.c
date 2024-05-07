@@ -16,6 +16,9 @@ int main(void)
 	system_initiation();
 	while (1)
 	{
+		USART_SendData(USART1, USART1_RX_BUF[Encode_Value[0]]);
+		while (USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET)
+			; // 等待发送结束
 		Movement();
 	}
 }

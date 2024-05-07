@@ -288,12 +288,8 @@ void Movement(void)
         {
             num[i] = current_data[i + 1]; // 提取十进制数字字符串
         }
-        distance_gradientmov_flag = atoi(num);
-        // atoi()函数将字符串数字转变为整型十进制数
-        USART_SendData(USART1, USART1_RX_BUF[(char)speed[0]]);
-        while (USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET)
-            ;              // 等待发送结束
-        USART1_RX_STA = 0; // 清零
+        distance_gradientmov_flag = atoi(num); // atoi()函数将字符串数字转变为整型十进制数
+        USART1_RX_STA = 0;                     // 清零
     }
     // 检测运动方向
     switch (direction)
