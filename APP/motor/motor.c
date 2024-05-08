@@ -43,8 +43,14 @@ void Motor_Init(void)
  */
 void Motor_Speed(s8 motor, s16 speed)
 {
-    if (motor >= 0 && motor <= 3)
+    if (speed < 0)
     {
+        Motor_SetDirection(motor, 0);
+        PWM_SetDutyCycle(motor + 1, -1 * speed);
+    }
+    else
+    {
+        Motor_SetDirection(motor, 1);
         PWM_SetDutyCycle(motor + 1, speed);
     }
 }

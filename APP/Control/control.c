@@ -5,12 +5,11 @@
 #include "LED.h"
 #include "SysTick.h"
 
-
 enum dir direction;
 
-#define ENCODER_VALUE 67        // 0.6m对应的编码器值
-uint8_t expect_encoderval = 20; // 编码器期望值
-uint8_t average_value = 0;      // 4个编码器平均值
+#define ENCODER_VALUE 67    // 0.6m对应的编码器值
+#define expect_encoderval 2 // 编码器期望值
+uint8_t average_value = 0;  // 4个编码器平均值
 
 // 陀螺仪数据变量
 float angle = 0;
@@ -23,9 +22,9 @@ uint8_t turn_flag = 0;    // 转向标志位
 uint8_t displacement = 0; // 移动位移
 
 // 增量式PID变量
-s16 ek[4] = {0};                  // 4个电机各自的当前误差
-s16 ek1[4] = {0};                 // 4个电机各自的前一次误差
-s16 ek2[4] = {0};                 // 4个电机各自的前前次误差
+s16 ek[4] = {0};                 // 4个电机各自的当前误差
+s16 ek1[4] = {0};                // 4个电机各自的前一次误差
+s16 ek2[4] = {0};                // 4个电机各自的前前次误差
 int16_t Increament[4] = {0};     // 计算得到的增量值
 int16_t Increament_Out[4] = {0}; // 增量输出
 
@@ -140,8 +139,8 @@ void Turn_right(void)
 }
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  *
  * @param void
  * @return void
@@ -190,14 +189,10 @@ s16 PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
     ek2[num] = ek1[num];
     ek1[num] = ek[num];
 
-    // 限幅 和 换向
+    // 限幅
     if (Increament_Out[num] > 100)
-        {
-            Increament_Out[num] = 100;
-        }
-    else if(Increament_Out[num]<0)
     {
-        Increament_Out[num] = Increament_Out[num] *(-1);    
+        Increament_Out[num] = 100;
     }
 
     return Increament_Out[num];
@@ -215,28 +210,28 @@ void unit_distancemov(uint8_t gradient)
     // 计算四个编码器平均编码值
     average_value = (Encode_Value[0] + Encode_Value[1] + Encode_Value[2] + Encode_Value[3]) / 4;
 
-    if (gradient == 0)//静止 or 停止
+    if (gradient == 0) // 静止 or 停止
     {
         Motor_Speed(0, 0);
         Motor_Speed(1, 0);
         Motor_Speed(2, 0);
         Motor_Speed(3, 0);
     }
-    
-    else if (gradient != 0)
+
+    if (gradient != 0)
     {
         displacement += average_value; // 编码器值累加计算路程
-        // PID计算占空比
-            for (i = 0; i < 4; i++)
-            {
+                                       // PID计算占空比
+        for (i = 0; i < 4; i++)
+        {
             speed[i] = PID_Increasement(expect_encoderval, i);
-            }
+        }
         Motor_Speed(0, speed[0]);
         Motor_Speed(1, speed[1]);
         Motor_Speed(2, speed[2]);
         Motor_Speed(3, speed[3]);
 
-         if(displacement>gradient * ENCODER_VALUE)
+        if (displacement > gradient * ENCODER_VALUE)
         {
             gradient = 0;     // 标志位清零,小车停止
             displacement = 0; // 位移计数清零
@@ -304,7 +299,7 @@ void Movement(void)
         LED2 = !LED2;
         Move_forward();
         direction = run; // 退出状态机
-        Encode_Clr(); // 编码器计数清零
+        Encode_Clr();    // 编码器计数清零
     }
     break;
     // 后退
@@ -341,10 +336,9 @@ void Movement(void)
     default:
         break;
     }
-    	 // 移动计算得出的距离
+    // 移动计算得出的距离
     if (direction == run)
     {
         unit_distancemov(distance_gradientmov_flag);
     }
-
 }

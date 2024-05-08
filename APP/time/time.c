@@ -1,6 +1,6 @@
 #include "time.h"
 #include "control.h"
-u16 counter = 0;
+// u16 counter = 0;
 
 void NVIC_Configuration(void)
 {
@@ -44,15 +44,14 @@ void TIM2_IRQHandler(void)
 	{
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
 
-		counter++;
-	if(counter>1000)
-	{
-				counter = 0; // 清零计数器
-			Encode_Value[0] = 0;
-			Encode_Value[1] = 0;
-			Encode_Value[2] = 0;
-			Encode_Value[3] = 0;
-	}
-		
+		// 	counter++;
+		// if(counter>1000)
+		// {
+		// 			counter = 0; // 清零计数器
+		// 		Encode_Value[0] = 0;
+		// 		Encode_Value[1] = 0;
+		// 		Encode_Value[2] = 0;
+		// 		Encode_Value[3] = 0;
+		// }
 	}
 }
