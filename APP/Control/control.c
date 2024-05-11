@@ -6,17 +6,16 @@
 #include "SysTick.h"
 #include "math.h"
 
-
 enum dir direction;
 
-#define unit_distance  60       // 单位距离 单位 m
-uint8_t expect_speed = 8;       // 速度期望值；单位 cm/s
-//电机满占空比即5V供电“匀速”运转时，real_speed取值参考区间 [10，16] (未闭环)
-//3.3V供电时    real_speed取值参考区间 [6，10] (未闭环)
-//5V和3.3V供电时，16与10出现概率较少，基本稳定为10和6，推测为开发板供电电源波动引起的噪声
+#define unit_distance 60  // 单位距离 单位 m
+uint8_t expect_speed = 8; // 速度期望值；单位 cm/s
+// 电机满占空比即5V供电“匀速”运转时，real_speed取值参考区间 [10，16] (未闭环)
+// 3.3V供电时    real_speed取值参考区间 [6，10] (未闭环)
+// 5V和3.3V供电时，16与10出现概率较少，基本稳定为10和6，推测为开发板供电电源波动引起的噪声
 
-uint8_t average_value = 0;       // 4个电机实际速度平均值
-uint8_t speed_pwm[4]={0};        //存储占空比
+uint8_t average_value = 0;  // 4个电机实际速度平均值
+uint8_t speed_pwm[4] = {0}; // 存储占空比
 // 陀螺仪数据变量
 float angle = 0;
 float GyroZ_last = 0;
@@ -28,11 +27,10 @@ uint8_t turn_flag = 0;    // 转向标志位
 uint8_t displacement = 0; // 移动位移
 
 // 增量式PID变量
-s16 ek[4] = {0};                  // 4个电机各自的当前误差
-s16 ek1[4] = {0};                 // 4个电机各自的前一次误差
-s16 ek2[4] = {0};                 // 4个电机各自的前前次误差
-s16 Increament[4] = {0};          // 计算得到的增量值
-s16 Increament_Out[4] = {0};      // 增量输出
+s16 ek[4] = {0};        // 4个电机各自的当前误差
+s16 ek1[4] = {0};       // 4个电机各自的前一次误差
+s16 ek2[4] = {0};       // 4个电机各自的前前次误差
+s16 Increment[4] = {0}; // PID计算得到的增量值
 
 // 增量式PID 参数数组
 double PID_Para[4][3] = {
@@ -174,70 +172,61 @@ void Move_back(void)
 }
 
 /**
- *          将四个电机的速度平均值作为输入，
- *          对四个电机分别进行闭环，PID的输出存在正负，
- *          电机输出口要根据PID输出进行换向
- * 
- *            TODO
  * @brief   增量式PID
  * @param   Expect_Encode_Value    编码器期望值
  * @param   num                    电机编号0-3
  * @return  PID增量输出
  */
- s16 PID_Increasement(int8_t Expect_Encode_Value, int8_t num)
- {
-    //  // 计算当前误差
-    //  ek[num] = Expect_Encode_Value - Encode_Value[num];
+s16 PID_Increment(int8_t Expect_Encode_Value, int8_t num)
+{
+    int PID_P = 0;
+    int PID_I = 0;
+    int PID_D = 0;
+    // TODO: 将四个电机的速度平均值作为输入，对四个电机分别进行闭环，PID的输出存在正负，
 
-    //  // 计算增量
-    //  Increament[num] = PID_Para[num][0] * (ek[num] - ek1[num]) + PID_Para[num][1] * ek[num] + PID_Para[num][2] * (ek[num] - 2 * ek1[num] + ek2[num]);
-    //  // 增量累加输出
-    //  Increament_Out[num] += Increament[num];
+    ek[num] = Expect_Encode_Value - Encode_Value[num];
+    PID_P = PID_Para[num][0] * (ek[num] - ek1[num]);
+    PID_I = PID_Para[num][1] * ek[num];
+    PID_D = PID_Para[num][2] * (ek[num] - 2 * ek1[num] + ek2[num]);
 
-    //  // 更新误差
-    //  ek2[num] = ek1[num];
-    //  ek1[num] = ek[num];
+    ek2[num] = ek1[num];
+    ek1[num] = ek[num];
 
-    //  // 限幅
-    //  if (Increament_Out[num] > 100)
-    //      Increament_Out[num] = 100;
-
-    // if (Increament_Out[num] < -100)
-    //      Increament_Out[num] = -100;
-
-    //  return Increament_Out[num];
- }
+    Increment[num] = PID_P + PID_I + PID_D;
+    return Increment[num];
+}
 
 /**
  * @brief   电机方向控制函数
- * @param   num 电机编号
+ * @param   num 电机编号0-3
  * @note    该函数由PID计算出的增量对电机进行方向控制
  * @return  void
  */
-// void Motor_Control(uint8_t num )
-// {
-//     speed_pwm[num] = PID_Increasement(expect_speed,num);
+void Motor_Control(uint8_t num)
+{
+    // TODO: 电机输出口要根据PID输出进行换向
+    speed_pwm[num] = PID_Increment(expect_speed, num);
 
-//     if(speed_pwm[num]>0)
-//     {
-//         Motor_SetDirection(num, 1);//正转
-//     }
-//     else 
-//     {
-//         Motor_SetDirection(num, 0);//反转
-//     }
+    if (speed_pwm[num] >= 0)
+    {
+        Motor_SetDirection(num, 1); // 正转
+    }
+    else
+    {
+        Motor_SetDirection(num, 0); // 反转
+    }
 
-//     Motor_Speed(num, abs(speed_pwm[num]));
-// }
+    Motor_Speed(num, abs(speed_pwm[num]));
+}
 
 /**
  * @brief   运动计算距离后停止
- * @param   gradient 梯度0-10,对应 distance_gradientmov_flag 标志位 
+ * @param   gradient 梯度0-10,对应 distance_gradientmov_flag 标志位
  * @param   pit_time 定时器中断时间　单位　ｓ;例如中断时间为5ms，则pit_time = 0.005
- * @note    NULL  
+ * @note    NULL
  * @return  void
  */
-void unit_distancemov(uint8_t gradient,float pit_time)
+void unit_distancemov(uint8_t gradient, float pit_time)
 {
     // 计算四个电机平均速度值 单位 cm/s
     average_value = (real_speed[0] + real_speed[1] + real_speed[2] + real_speed[3]) / 4;
@@ -253,11 +242,11 @@ void unit_distancemov(uint8_t gradient,float pit_time)
     {
         displacement += (average_value * pit_time); // 实际速度积分得路程
 
-        //PID计算以及控制电机转向和速度设置
-    //    Motor_Control(0);
-    //    Motor_Control(1);
-    //    Motor_Control(2);
-    //    Motor_Control(3);
+        // PID计算以及控制电机转向和速度设置
+        Motor_Control(0);
+        Motor_Control(1);
+        Motor_Control(2);
+        Motor_Control(3);
 
         Motor_Speed(0, 70);
         Motor_Speed(1, 70);
@@ -267,7 +256,7 @@ void unit_distancemov(uint8_t gradient,float pit_time)
         {
             gradient = 0;     // 标志位清零,小车停止
             displacement = 0; // 位移计数清零
-            direction = (enum dir) stop;
+            direction = (enum dir)stop;
             LED1 = !LED1;
         }
     }
@@ -365,7 +354,7 @@ void Movement(void)
         direction = run;
     }
     break;
-    default:break;
+    default:
+        break;
     }
-
 }

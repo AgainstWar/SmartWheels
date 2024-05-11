@@ -1,8 +1,7 @@
 #include "encode.h"
 
-
 u16 Encode_Value[4] = {0, 0, 0, 0};
-uint8_t real_speed[4]={0};    // 实际速度 单位 cm/s
+uint8_t real_speed[4] = {0};  // 实际速度 单位 cm/s
 const float diameter = 6E-2;  // 轮胎直径 6cm
 const float code_disc = 20.0; // 编码盘格数
 
@@ -29,11 +28,10 @@ void Encode_Init(void)
     Encode_Value[3] = 0;
 }
 
-
 /**
  * @brief   编码器计数清零
  * @param   void
- * @note    
+ * @note
  * @return void
  */
 void Encode_Clr(void)
@@ -43,4 +41,3 @@ void Encode_Clr(void)
     Encode_Value[2] = 0;
     Encode_Value[3] = 0;
 }
-
