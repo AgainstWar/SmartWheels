@@ -1,6 +1,6 @@
 #include "exti.h"
 
-void GPIO_Configuration(void);
+static void GPIO_Configuration(void);
 
 /**
  * @brief 初始化外部中断
@@ -12,6 +12,7 @@ void SYSTEM_EXTI_Init(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
 	EXTI_InitTypeDef EXTI_InitStructure;
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	   // 设置NVIC中断分组2
 
 	GPIO_Configuration();
 
@@ -20,34 +21,36 @@ void SYSTEM_EXTI_Init(void)
 	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource3); // 选择GPIOA_3管脚用作外部中断线
 	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource4); // 选择GPIOA_4管脚用作外部中断线
 
+	// EXTI1 NVIC 配置
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI1_IRQn;		  // EXTI1中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; // 抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		  // 子优先级
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  // IRQ通道使能
+	NVIC_Init(&NVIC_InitStructure);							  // 根据指定的参数初始化NVIC寄存器
+
+
 	// EXTI2 NVIC 配置
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI2_IRQn;		  // EXTI2中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; // 抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; // 抢占优先级
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;		  // 子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  // IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);							  // 根据指定的参数初始化NVIC寄存器
 
 	// EXTI3 NVIC 配置
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI3_IRQn;		  // EXTI3中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; // 抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; // 抢占优先级
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;		  // 子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  // IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);							  // 根据指定的参数初始化NVIC寄存器
 
 	// EXTI4 NVIC 配置
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn;		  // EXTI4中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; // 抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; // 抢占优先级
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 4;		  // 子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  // IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);							  // 根据指定的参数初始化NVIC寄存器
 
-	// EXTI1 NVIC 配置
-	NVIC_InitStructure.NVIC_IRQChannel = EXTI1_IRQn;		  // EXTI1中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; // 抢占优先级
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		  // 子优先级
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  // IRQ通道使能
-	NVIC_Init(&NVIC_InitStructure);							  // 根据指定的参数初始化NVIC寄存器
-
+	
 	EXTI_InitStructure.EXTI_Line = EXTI_Line1 | EXTI_Line2 | EXTI_Line3 | EXTI_Line4; // 外部中断线
 	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
 	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling; // 下降沿触发
@@ -55,7 +58,7 @@ void SYSTEM_EXTI_Init(void)
 	EXTI_Init(&EXTI_InitStructure);
 }
 
-void GPIO_Configuration(void)
+static void GPIO_Configuration(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -77,9 +80,15 @@ void EXTI1_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line1) == 1)
 	{
+		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_1)==0)
 		Encode_Value[0]++;
+		if(Encode_Value[0]>9999)
+		{
+			Encode_Value[0]=0;
+		}
+		EXTI_ClearITPendingBit(EXTI_Line1);
 	}
-	EXTI_ClearITPendingBit(EXTI_Line1);
+	
 }
 
 /**
@@ -91,9 +100,15 @@ void EXTI2_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line2) == 1)
 	{
+		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_2)==0)
 		Encode_Value[1]++;
+		if(Encode_Value[1]>9999)
+		{
+			Encode_Value[1]=0;
+		}
+		EXTI_ClearITPendingBit(EXTI_Line2);
 	}
-	EXTI_ClearITPendingBit(EXTI_Line2);
+	
 }
 
 /**
@@ -105,10 +120,16 @@ void EXTI3_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line3) == 1)
 	{
+		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_3)==0)
 		Encode_Value[2]++;
+		if(Encode_Value[2]>9999)
+		{
+			Encode_Value[2]=0;
+		}
+		EXTI_ClearITPendingBit(EXTI_Line3);
 	}
-	EXTI_ClearITPendingBit(EXTI_Line3);
 }
+	
 
 /**
  * @brief 外部中断4函数
@@ -119,7 +140,13 @@ void EXTI4_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line4) == 1)
 	{
+		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_4)==0)
 		Encode_Value[3]++;
+		if(Encode_Value[3]>9999)
+		{
+			Encode_Value[3]=0;
+		}
+		EXTI_ClearITPendingBit(EXTI_Line4);
 	}
-	EXTI_ClearITPendingBit(EXTI_Line4);
+	
 }
