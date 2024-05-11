@@ -11,6 +11,6 @@ extern const float code_disc;
 
 void Encode_Clr(void);
 void Encode_Init(void);
-
+void Encode_Read(void);
 
 #endif

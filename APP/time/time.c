@@ -1,6 +1,6 @@
 #include "time.h"
-
-u16 counter = 0;
+#include "control.h"
+// u16 counter = 0;
 
 void NVIC_Configuration(void)
 {
@@ -59,5 +59,6 @@ void TIM2_IRQHandler(void)
 			Encode_Value[2] = 0;
 			Encode_Value[3] = 0;
 		}
+
 	}
 }

@@ -1,6 +1,6 @@
 #include "exti.h"
 
-static void GPIO_Configuration(void);
+void GPIO_Configuration(void);
 
 /**
  * @brief 初始化外部中断
@@ -50,12 +50,12 @@ void SYSTEM_EXTI_Init(void)
 
 	EXTI_InitStructure.EXTI_Line = EXTI_Line1 | EXTI_Line2 | EXTI_Line3 | EXTI_Line4; // 外部中断线
 	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising; // 上升沿触发
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling; // 下降沿触发
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
 	EXTI_Init(&EXTI_InitStructure);
 }
 
-static void GPIO_Configuration(void)
+void GPIO_Configuration(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
