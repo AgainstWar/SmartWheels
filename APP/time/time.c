@@ -5,7 +5,10 @@
 #include "LCD.h"
 #include "encode.h"
 
+//单位时间计数变量
 u16 counter = 0;
+u16 time_cnt=0;
+
 extern enum dir direction;
 uint16_t Encode_Value1[4]={0},
 		 Encode_Value2[4]={0},
@@ -55,6 +58,11 @@ void TIM2_IRQHandler(void)//10ms 定时中断
 
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update))
 	{
+		if(direction==run)
+		{
+			time_cnt++;
+		}
+		mpu6050_get_gyro();
 		counter++;
 		//计算转速 Encode_Value3；由于采样间隔为1s，省略Encode_Value/1 计算
 		if(counter==50)
@@ -125,18 +133,15 @@ void TIM2_IRQHandler(void)//10ms 定时中断
 		speed2[3]=(Encode_Value3[3]*3.14*6)/20;
 
 		real_speed[0]=(speed[0]+speed1[0]+speed2[0])/3;//均值滤波
-		real_speed[0]=(speed[0]+speed1[0]+speed2[0])/3;
-		real_speed[0]=(speed[0]+speed1[0]+speed2[0])/3;
-		real_speed[0]=(speed[0]+speed1[0]+speed2[0])/3;
+		real_speed[1]=(speed[1]+speed1[1]+speed2[1])/3;
+		real_speed[2]=(speed[2]+speed1[2]+speed2[2])/3;
+		real_speed[3]=(speed[3]+speed1[3]+speed2[3])/3;
 		
-
-
- // 移动计算得出的距离
-    if (direction == run)
-    {	
-        unit_distancemov(distance_gradientmov_flag,0.01);
-    }
-
+		if(time_cnt==100)//
+		{
+			time_cnt=0;
+			time_sum++;
+		}
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);	
 	}
 	

@@ -23,15 +23,17 @@ void Turn_right(void);
 void Move_forward(void);
 void Move_back(void);
 
-void unit_distancemov(uint8_t gradient,float  pit_time);
+void unit_distancemov(void);
 
-s16 PID_Increasement(int8_t Expect_Encode_Value, int8_t num);
+s16 PID_Increment(int8_t Expect_Encode_Value, int8_t num);
 
 void Movement(void);
 void Motor_Control(uint8_t num);
 
+extern uint8_t time_sum ;
 extern uint16_t distance_gradientmov_flag;
-extern uint8_t displacement;
 extern uint8_t average_value;
 extern uint8_t speed[4];
+extern uint8_t speed_pwm[4];
+extern enum dir direction;
 #endif

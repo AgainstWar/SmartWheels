@@ -10,7 +10,7 @@
 #include "control.h"
 #include "LED.h"
 #include "LCD.h"
-extern enum dir direction;
+
 void system_initiation(void);
 
 int main(void)
@@ -18,7 +18,11 @@ int main(void)
 	system_initiation();
 	while (1)
 	{
-		Movement();		
+		Movement();	
+		if(mpu6050_gyro_z)
+		{
+			USART_SendData(USART1,abs(mpu6050_gyro_z));
+		}			
 	}
 }
 

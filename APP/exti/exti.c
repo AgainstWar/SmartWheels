@@ -80,8 +80,11 @@ void EXTI1_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line1) == 1)
 	{
-		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_1)==0)
-		Encode_Value[0]++;
+		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_1)==0&&direction==run)
+		{
+			Encode_Value[0]++;
+		}
+
 		if(Encode_Value[0]>9999)
 		{
 			Encode_Value[0]=0;
@@ -100,8 +103,11 @@ void EXTI2_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line2) == 1)
 	{
-		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_2)==0)
-		Encode_Value[1]++;
+		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_2)==0&&direction==run)
+		{
+			Encode_Value[1]++;
+		}
+
 		if(Encode_Value[1]>9999)
 		{
 			Encode_Value[1]=0;
@@ -120,8 +126,11 @@ void EXTI3_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line3) == 1)
 	{
-		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_3)==0)
-		Encode_Value[2]++;
+		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_3)==0&&direction==run)
+		{
+			Encode_Value[2]++;
+		}
+
 		if(Encode_Value[2]>9999)
 		{
 			Encode_Value[2]=0;
@@ -140,8 +149,13 @@ void EXTI4_IRQHandler(void)
 {
 	if (EXTI_GetITStatus(EXTI_Line4) == 1)
 	{
-		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_4)==0)
-		Encode_Value[3]++;
+		if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_4)==0&&direction==run)
+		{
+			Encode_Value[3]++;
+		}
+		{
+			Encode_Value[3]=0;
+		}
 		if(Encode_Value[3]>9999)
 		{
 			Encode_Value[3]=0;
