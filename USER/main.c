@@ -10,7 +10,7 @@
 #include "control.h"
 #include "LED.h"
 #include "LCD.h"
-extern enum dir direction;
+
 void system_initiation(void);
 
 int main(void)
@@ -18,7 +18,8 @@ int main(void)
 	system_initiation();
 	while (1)
 	{
-		Movement();		
+		Movement();	
+		
 	}
 }
 
@@ -29,7 +30,7 @@ void system_initiation(void)
 	SysTick_Init(72);	 // 系统频率72MHz
 	USART1_Init(115200); // 串口初始化 波特率115200
 	TIM2_Init(9999, 71);  // 定时器2初始化
-	mpu6050_init();		 // 陀螺仪初始化
+	MPU6050_Init();		 // 陀螺仪初始化
 	Motor_Init();		 // 电机相关函数初始化
 	Encode_Init();		 // 编码器相关函数初始化
 	LCD_Init();			 // LCD1602初始化

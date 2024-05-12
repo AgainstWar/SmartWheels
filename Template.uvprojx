@@ -504,6 +504,11 @@
               <FileType>1</FileType>
               <FilePath>.\APP\LCD1602\LCD.c</FilePath>
             </File>
+            <File>
+              <FileName>MyI2C.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\MPU6050\MyI2C.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
