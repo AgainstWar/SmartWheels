@@ -6,7 +6,6 @@
 
 
 
-extern u8 Direction[4];
 extern u8 Last_Speed[4];
 
 void Motor_Init(void);

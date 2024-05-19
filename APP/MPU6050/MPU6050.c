@@ -1,6 +1,8 @@
 #include "stm32f10x.h"                  // Device header
 #include "MyI2C.h"
 #include "MPU6050_Reg.h"
+#include "LED.h"
+#include "MPU6050.h"
 
 
  float Zero_Drift=0;
@@ -69,8 +71,6 @@ void MPU6050_Init(void)
 	MPU6050_WriteReg(MPU6050_CONFIG, 0x06);			//配置寄存器，配置DLPF
 	MPU6050_WriteReg(MPU6050_GYRO_CONFIG, 0x18);	//陀螺仪配置寄存器，选择满量程为±2000°/s
 	MPU6050_WriteReg(MPU6050_ACCEL_CONFIG, 0x18);	//加速度计配置寄存器，选择满量程为±16g
-  MPU6050_Z_Zero_Drift_Calculation();             //计算默认轴--Z轴零漂值
-
 }
  
 /**
@@ -129,11 +129,11 @@ void MPU6050_GetData(int16_t *AccX, int16_t *AccY, int16_t *AccZ,
 void MPU6050_Z_Zero_Drift_Calculation(void)
 {
     uint8_t i = 0;
-    for (i = 0; i < 150; i++)
+    for (i = 0; i < 10; i++)
     {
         MPU6050_GetData(&Ax,&Ay,&Az,&Gx,&Gy,&Gz);
         Zero_Drift += Gz;
-        delay_ms(2);
+		LED2=!LED2;
     }
-    Zero_Drift /= 150;
+    Zero_Drift /= 10;
 }

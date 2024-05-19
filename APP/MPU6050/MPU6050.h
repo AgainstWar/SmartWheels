@@ -6,9 +6,9 @@ uint8_t MPU6050_ReadReg(uint8_t RegAddress);
  
 void MPU6050_Init(void);
 uint8_t MPU6050_GetID(void);
-void MPU6050_GetData(int16_t *AccX, int16_t *AccY, int16_t *AccZ, 
-						int16_t *GyroX, int16_t *GyroY, int16_t *GyroZ);
+void MPU6050_GetData(int16_t *AccX, int16_t *AccY, int16_t *AccZ, int16_t *GyroX, int16_t *GyroY, int16_t *GyroZ);
  extern int16_t Ax,Ay,Az,//角加速度
 			   Gx,Gy,Gz;//角速度
 extern float Zero_Drift;
+void MPU6050_Z_Zero_Drift_Calculation(void);
 #endif

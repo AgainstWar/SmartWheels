@@ -97,17 +97,17 @@ void PWM_SetDutyCycle(u16 channel, s16 duty)
 
     switch (channel)
     {
+    case 0:
+        TIM_SetCompare1(TIM3, duty);//PA6
+        break;
     case 1:
-        TIM_SetCompare1(TIM3, duty);
+        TIM_SetCompare2(TIM3, duty);//PA7
         break;
     case 2:
-        TIM_SetCompare2(TIM3, duty);
+        TIM_SetCompare3(TIM3, duty);//PB0
         break;
     case 3:
-        TIM_SetCompare3(TIM3, duty);
-        break;
-    case 4:
-        TIM_SetCompare4(TIM3, duty);
+        TIM_SetCompare4(TIM3, duty);//PB1
         break;
     default:
         break;

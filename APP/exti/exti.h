@@ -11,7 +11,7 @@ extern uint8_t turnleft_flag , turnright_flag ;
 extern uint8_t ditance_gradientmov_flag;
 extern uint8_t expect_encoderval;
 
-extern s16 PID_Increasement(int8_t Expect_Encode_Value,int8_t num);
+
 
 void SYSTEM_EXTI_Init(void);
 

@@ -153,9 +153,7 @@ void EXTI4_IRQHandler(void)
 		{
 			Encode_Value[3]++;
 		}
-		{
-			Encode_Value[3]=0;
-		}
+
 		if(Encode_Value[3]>9999)
 		{
 			Encode_Value[3]=0;

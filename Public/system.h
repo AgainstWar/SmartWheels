@@ -49,4 +49,6 @@
 #define PGout(n) BIT_ADDR(GPIOG_ODR_Addr, n) // 输出
 #define PGin(n) BIT_ADDR(GPIOG_IDR_Addr, n)  // 输入
 
+
+void System_Reset(void) ;
 #endif

@@ -1,19 +1,24 @@
 #include <control.h>
+#include "encode.h"
+#include "motor.h"
+#include "pwm.h"
 #include "usart.h"
 #include "math.h"
 #include "stdlib.h"
 #include "LED.h"
 #include "SysTick.h"
 #include "math.h"
+#include "MPU6050.h"
+#include "system.h"
 
-enum dir direction = stop; // 初始化默认停止
+enum dir direction = stop;  //初始化默认停止
+enum dir direction_last=stop;
 
-uint8_t expect_speed = 8; // 速度期望值；单位 cm/s
-// 电机满占空比即5V供电“匀速”运转时，real_speed取值参考区间 [10，16] (未闭环)
-// 3.3V供电时    real_speed取值参考区间 [6，10] (未闭环)
-// 5V和3.3V供电时，16与10出现概率较少，基本稳定为10和6，推测为开发板供电电源波动引起的噪声
+uint8_t cnt=0;
 
-uint8_t time_sum = 0;       // 匀速运动时间 单位 s
+uint8_t expect_speed = 80; // 速度期望值；单位 mm/s
+
+uint8_t time_sum =0 ;       // 匀速运动时间 单位 s
 uint8_t average_value = 0;  // 4个电机实际速度平均值
 uint8_t speed_pwm[4] = {0}; // 存储占空比
 // 陀螺仪数据变量
@@ -23,7 +28,8 @@ float GyroZ = 0;
 
 uint16_t distance_gradientmov_flag = 0; // 通过串口数据计算得到的行动距离数据
 
-uint8_t turn_flag = 0; // 转向标志位
+uint8_t turn_flag = 0;    // 转向标志位
+
 
 // 增量式PID变量
 s16 ek[4] = {0};        // 4个电机各自的当前误差
@@ -40,6 +46,7 @@ double PID_Para[4][3] = {
     8, 2, 25, // 电机3参数
 };
 
+
 /**
  * @brief   MPU6050 Z轴角速度处理
  * @param   void
@@ -48,98 +55,103 @@ double PID_Para[4][3] = {
  */
 void MPU6050_data_processing(void)
 {
-    GyroZ = Gz;
-    GyroZ_last = GyroZ;
-    GyroZ = (Gz - Zero_Drift) / 16.4;
-    GyroZ = GyroZ * 0.9 + GyroZ_last * 0.1;
+   GyroZ= Gz;
+   GyroZ_last = GyroZ;
+   GyroZ = (Gz - Zero_Drift) / 16.4;
+   GyroZ = GyroZ * 0.9 + GyroZ_last * 0.1;
 }
 
 /**
- * @brief   原地左转90°
+ * @brief   原地转向90°
  * @param   void
- * @note    右轮正转，左轮反转
  * @return  void
  */
-void Turn_left(void)
+void Turn(void)
 {
-
-    // 获取陀螺仪数据
-    MPU6050_GetData(&Ax, &Ay, &Az, &Gx, &Gy, &Gz);
-
-    // 设置电机转向
-    Motor_SetDirection(0, 0);
-    Motor_SetDirection(1, 0);
-    Motor_SetDirection(2, 1);
-    Motor_SetDirection(3, 1);
-
-    // 处理角速度
-    MPU6050_data_processing();
-
-    // 陀螺仪安装影响角速度方向，默认向左转角速度为正
-    if (angle <= 90 && turn_flag == 1)
+   
+    // 角度计算
+    angle += (GyroZ*0.008);
+      
+    switch(turn_flag)
     {
-        // 角度计算
-        angle += GyroZ;
+        case 1://左转   // 陀螺仪安装影响角速度方向，默认向左转角速度为正
+        {
+                if (angle>90)
+                {
+                    if(cnt%100==0)//静止1秒左右
+                    {
+                        cnt=0;
+                        direction=(enum dir)run;
+                        turn_flag=0;//转向标志位清零
+                        angle=0;
+                    }
+                else 
+                    {
+                    
+                    // 设置电机速度
+                    Motor_Speed(0, 0);
+                    Motor_Speed(1, 0);
+                    Motor_Speed(2, 0);
+                    Motor_Speed(3, 0);
+                    }
+                }
+                else
+                {
+                // 设置电机转向
+                Motor_SetDirection(0, 0);
+                Motor_SetDirection(1, 0);
+                Motor_SetDirection(2, 1);
+                Motor_SetDirection(3, 1);
 
-        // 设置电机速度
-        Motor_Speed(0, 50);
-        Motor_Speed(1, 50);
-        Motor_Speed(2, 50);
-        Motor_Speed(3, 50);
+                // 设置电机速度
+                Motor_Speed(0, 90);
+                Motor_Speed(1, 90);
+                Motor_Speed(2, 90);
+                Motor_Speed(3, 90);
+                }
+                
+        }break;
+
+        case 2://右转
+        {
+                if (angle<-90)
+                {
+
+                    if(cnt%100==0)
+                    {
+                        cnt=0;
+                        direction=(enum dir)run;
+                        turn_flag=0;//转向标志位清零
+                        angle=0;
+                    }
+                else 
+                    {
+                        // 设置电机速度
+                        Motor_Speed(0, 0);
+                        Motor_Speed(1, 0);
+                        Motor_Speed(2, 0);
+                        Motor_Speed(3, 0);
+                    }
+                }
+                else
+                {
+                // 设置电机转向
+                Motor_SetDirection(0, 1);
+                Motor_SetDirection(1, 1);
+                Motor_SetDirection(2, 0);
+                Motor_SetDirection(3, 0);
+
+                // 设置电机速度
+                Motor_Speed(0, 90);
+                Motor_Speed(1, 90);
+                Motor_Speed(2, 90);
+                Motor_Speed(3, 90);
+                }
+                
+        }break;
+        default:break;
     }
-    else if (angle > 90)
-    {
-        turn_flag = 0;
-        angle = 0;
-        Motor_Speed(0, 0);
-        Motor_Speed(1, 0);
-        Motor_Speed(2, 0);
-        Motor_Speed(3, 0);
-    }
-}
-
-/**
- * @brief   原地右转90°
- * @param   void
- * @note    右轮反转，左轮正转
- * @return  void
- */
-void Turn_right(void)
-{
-    // 获取陀螺仪数据
-    MPU6050_GetData(&Ax, &Ay, &Az, &Gx, &Gy, &Gz);
-
-    // 设置电机转向
-    Motor_SetDirection(0, 1);
-    Motor_SetDirection(1, 1);
-    Motor_SetDirection(2, 0);
-    Motor_SetDirection(3, 0);
-
-    // 处理加速度
-    MPU6050_data_processing();
-
-    // 陀螺仪安装影响角速度方向，默认向左转角速度为正
-    if (angle > -90 && turn_flag == 2)
-
-    {
-        // 角度计算
-        angle += GyroZ;
-
-        // 设置电机速度
-        Motor_Speed(0, 50);
-        Motor_Speed(1, 50);
-        Motor_Speed(2, 50);
-        Motor_Speed(3, 50);
-    }
-    else if (angle < -90)
-    {
-        turn_flag = 0;
-        angle = 0;
-        Motor_Speed(0, 0);
-        Motor_Speed(1, 0);
-        Motor_Speed(2, 0);
-        Motor_Speed(3, 0);
-    }
+   
 }
 
 /**
@@ -183,7 +195,7 @@ s16 PID_Increment(int8_t Expect_Encode_Value, int8_t num)
     int PID_I = 0;
     int PID_D = 0;
 
-    ek[num] = Expect_Encode_Value - Encode_Value[num];
+    ek[num] = Expect_Encode_Value - average_value;
     PID_P = PID_Para[num][0] * (ek[num] - ek1[num]);
     PID_I = PID_Para[num][1] * ek[num];
     PID_D = PID_Para[num][2] * (ek[num] - 2 * ek1[num] + ek2[num]);
@@ -196,46 +208,30 @@ s16 PID_Increment(int8_t Expect_Encode_Value, int8_t num)
 }
 
 /**
- * @brief   电机方向控制函数
+ * @brief   电机速度控制函数
  * @param   num 电机编号0-3
- * @note    该函数由PID计算出的增量对电机进行方向控制
+ * @note    该函数由PID计算出的增量对PUM占空比赋值进而对电机进行速度控制
  * @note    默认0，1号电机在左；2，3号电机在右
  * @return  void
  */
 void Motor_Control(uint8_t num)
 {
+     // 计算四个电机平均速度值 单位  cm/s
+    average_value = (real_speed[0] + real_speed[1] + real_speed[2] + real_speed[3]) / 4;
 
-    speed_pwm[num] = 6 * PID_Increment(expect_speed, num);
-    switch (num)
+    speed_pwm[num] = PID_Increment(expect_speed, num);
+    
+    if(speed_pwm[num]>0)
     {
-    case 0 | 1:
+        Motor_SetDirection(num, 1);
+    }
+    else
     {
-        if (speed_pwm[num] >= 0)
-        {
-            Motor_SetDirection(num, 1); // 正转
-        }
-        else
-        {
-            Motor_SetDirection(num, 0); // 反转
-        }
+        Motor_SetDirection(num, 0);
     }
-    break;
-    case 2 | 3:
-    {
-        if (speed_pwm[num] >= 0)
-        {
-            Motor_SetDirection(num, 0);
-        }
-        else
-        {
-            Motor_SetDirection(num, 1);
-        }
-    }
-
-    default:
-        break;
-    }
+    
     Motor_Speed(num, abs(speed_pwm[num]));
+     
 }
 
 /**
@@ -244,194 +240,168 @@ void Motor_Control(uint8_t num)
  * @note    NULL
  * @return  void
  */
-void unit_distancemov(void)
+void unit_distancemov( void)
 {
-    // 计算四个电机平均速度值 单位  mm/s
-    average_value = 10 * (real_speed[0] + real_speed[1] + real_speed[2] + real_speed[3]) / 4;
-
+            if (direction_last==S)
+            {
+                Move_back();
+                Motor_Speed(0,PID_Increment(expect_speed,0));
+                Motor_Speed(1,PID_Increment(expect_speed,1));
+                Motor_Speed(2,PID_Increment(expect_speed,2));
+                Motor_Speed(3,PID_Increment(expect_speed,3));
+            }
+            else if(direction_last==W||direction_last==E||direction_last==N)
+            {
+                Move_forward();
+                Motor_Control(0);//对0号电机闭环
+                Motor_Control(1);
+                Motor_Control(2);
+                Motor_Control(3);                
+            }
+            
     switch (distance_gradientmov_flag)
     {
+    
     case 0:
     {
-        Motor_Speed(0, 0);
-        Motor_Speed(1, 0);
-        Motor_Speed(2, 0);
-        Motor_Speed(3, 0);
-    }
-    break;
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=0;
+            direction = (enum dir)stop;
+            System_Reset();
+    }break;
 
     case 1:
     {
-        Motor_Control(0); // 对0号电机闭环
-        Motor_Control(1);
-        Motor_Control(2);
-        Motor_Control(3);
-
-        if (time_sum == distance_gradientmov_flag * 10) // 匀速运动10秒
+      
+         if (time_sum == distance_gradientmov_flag*5)//匀速运动10秒
         {
-            distance_gradientmov_flag = 0; // 标志位清零,小车停止 退出当前状态
-            time_sum = 0;
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=0;
             direction = (enum dir)stop;
-            LED1 = !LED1;
+           
         }
-    }
-    break;
+
+    }break;
 
     case 2:
-    {
-        Motor_Control(0); // 对0号电机闭环
-        Motor_Control(1);
-        Motor_Control(2);
-        Motor_Control(3);
-
-        if (time_sum == distance_gradientmov_flag * 10)
+    {            
+         
+         if (time_sum == distance_gradientmov_flag*5)
         {
-            distance_gradientmov_flag = 0; // 标志位清零,小车停止 退出当前状态
-            time_sum = 0;
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=0;
             direction = (enum dir)stop;
-            LED1 = !LED1;
+            
         }
-    }
-    break;
+
+    }break;
 
     case 3:
-    {
-        Motor_Control(0); // 对0号电机闭环
-        Motor_Control(1);
-        Motor_Control(2);
-        Motor_Control(3);
-
-        if (time_sum == distance_gradientmov_flag * 10)
+    {           
+         
+         if (time_sum == distance_gradientmov_flag*5)
         {
-            distance_gradientmov_flag = 0; // 标志位清零,小车停止 退出当前状态
-            time_sum = 0;
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=0;
             direction = (enum dir)stop;
-            LED1 = !LED1;
+            
         }
-    }
-    break;
 
-    case 4:
-    {
-        Motor_Control(0); // 对0号电机闭环
-        Motor_Control(1);
-        Motor_Control(2);
-        Motor_Control(3);
+    }break;
 
-        if (time_sum == distance_gradientmov_flag * 10)
+      case 4:
+    {       
+         
+         if (time_sum == distance_gradientmov_flag*5)
         {
-            distance_gradientmov_flag = 0; // 标志位清零,小车停止 退出当前状态
-            time_sum = 0;
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=0;
             direction = (enum dir)stop;
-            LED1 = !LED1;
+            
         }
-    }
-    break;
+            
+    }break;
 
     case 5:
-    {
-        Motor_Control(0); // 对0号电机闭环
-        Motor_Control(1);
-        Motor_Control(2);
-        Motor_Control(3);
-
-        if (time_sum == distance_gradientmov_flag * 10)
-        {
-            distance_gradientmov_flag = 0; // 标志位清零,小车停止 退出当前状态
-            time_sum = 0;
+    { 
+         
+         if (time_sum == distance_gradientmov_flag*5)
+           {
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=0;
             direction = (enum dir)stop;
-            LED1 = !LED1;
-        }
-    }
-    break;
+            
+           }
+           
+    }break;
 
     case 6:
     {
-        Motor_Control(0); // 对0号电机闭环
-        Motor_Control(1);
-        Motor_Control(2);
-        Motor_Control(3);
-
-        if (time_sum == distance_gradientmov_flag * 10)
+         
+         if (time_sum == distance_gradientmov_flag*5)
         {
-            distance_gradientmov_flag = 0; // 标志位清零,小车停止 退出当前状态
-            time_sum = 0;
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=0;
             direction = (enum dir)stop;
-            LED1 = !LED1;
+            
         }
-    }
-    break;
+            
+    }break;
 
     case 7:
     {
-        Motor_Control(0); // 对0号电机闭环
-        Motor_Control(1);
-        Motor_Control(2);
-        Motor_Control(3);
-
-        if (time_sum == distance_gradientmov_flag * 10)
+         
+         if (time_sum == distance_gradientmov_flag*5)
         {
-            distance_gradientmov_flag = 0; // 标志位清零,小车停止 退出当前状态
-            time_sum = 0;
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=0;
             direction = (enum dir)stop;
-            LED1 = !LED1;
+            
         }
-    }
-    break;
+            
+    }break; 
 
-    case 8:
+      case 8:
     {
-        Motor_Control(0); // 对0号电机闭环
-        Motor_Control(1);
-        Motor_Control(2);
-        Motor_Control(3);
-
-        if (time_sum == distance_gradientmov_flag * 10)
+         
+         if (time_sum == distance_gradientmov_flag*5)
         {
-            distance_gradientmov_flag = 0; // 标志位清零,小车停止 退出当前状态
-            time_sum = 0;
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=0;
             direction = (enum dir)stop;
-            LED1 = !LED1;
+            
         }
-    }
-    break;
+            
+    }break;
 
     case 9:
     {
-        Motor_Control(0); // 对0号电机闭环
-        Motor_Control(1);
-        Motor_Control(2);
-        Motor_Control(3);
 
-        if (time_sum == distance_gradientmov_flag * 10)
+         if (time_sum ==distance_gradientmov_flag*5)
         {
-            distance_gradientmov_flag = 0; // 标志位清零,小车停止 退出当前状态
-            time_sum = -0;
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=-0;
             direction = (enum dir)stop;
-            LED1 = !LED1;
+            
         }
-    }
-    break;
+            
+    }break;
 
     case 10:
-    {
-        Motor_Control(0); // 对0号电机闭环
-        Motor_Control(1);
-        Motor_Control(2);
-        Motor_Control(3);
-
-        if (time_sum == distance_gradientmov_flag * 10)
+    {            
+         
+         if (time_sum == distance_gradientmov_flag*5)
         {
-            distance_gradientmov_flag = 0; // 标志位清零,小车停止 退出当前状态
-            time_sum = 0;
+            distance_gradientmov_flag = 0;     // 标志位清零,小车停止 退出当前状态
+            time_sum=0;
             direction = (enum dir)stop;
-            LED1 = !LED1;
+            
         }
-    }
-    break;
 
-    default:
-        break;
+    }break;
+    
+    default:break;
+        
     }
 }
 
@@ -492,8 +462,8 @@ void Movement(void)
     {
         Encode_Clr(); // 编码器计数清零
         Rspeed_Clr(); // 速度数据清零
-        // LED2 = !LED2;
         Move_forward();
+        direction_last=N;
         direction = run; // 退出当前状态
     }
     break;
@@ -502,54 +472,46 @@ void Movement(void)
     {
         Encode_Clr();
         Rspeed_Clr();
-        // LED1 = !LED1;
         Move_back();
+        direction_last=S;
         direction = run;
     }
     break;
     // 左
     case W:
-    {
+    {       
         Encode_Clr();
         Rspeed_Clr();
-        turn_flag = 1;
-        Turn_left();
-        // LED1 = !LED1;
-        // LED2 = !LED2;
-        direction = run;
-    }
-    break;
+        direction_last=W;
+        turn_flag = 1;     
+    }break;
     // 右
     case E:
-    {
+    {     
+
         Encode_Clr();
         Rspeed_Clr();
-        turn_flag = 2;
-        Turn_right();
-        // LED1 = !LED1;
-        // LED2 = !LED2;
-        direction = run;
+        direction_last=E;
+        turn_flag = 2;      
     }
     break;
-        // 移动计算得出的距离
+     // 移动计算得出的距离
     case run:
-    {
+    {	
         unit_distancemov();
-    }
-    break;
-    // 停止运动
-    case stop:
-    {
-        Motor_Speed(0, 0);
+    }break;
+    //停止运动
+	case stop:
+	{
+		Motor_Speed(0, 0);
         Motor_Speed(1, 0);
         Motor_Speed(2, 0);
         Motor_Speed(3, 0);
-        average_value = 0; // 均速数据清零
+        average_value=0;//均速数据清零
         Encode_Clr();
         Rspeed_Clr();
-    }
-    break;
-    default:
-        break;
+        angle=0;
+	}break;
+    default:break;
     }
 }

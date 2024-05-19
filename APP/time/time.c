@@ -1,9 +1,10 @@
 #include "time.h"
-#include "stm32f10x.h"
+#include "system.h"
+#include "encode.h"
+#include "control.h"
 #include "LED.h"
 #include "SysTick.h"
 #include "LCD.h"
-#include "encode.h"
 #include "MPU6050.h"
 
 //单位时间计数变量
@@ -64,6 +65,12 @@ void TIM2_IRQHandler(void)//10ms 定时中断
 			time_cnt++;
 		}
 		counter++;
+		if (fabs(angle)>90)
+		{
+			cnt++;
+		}
+		
+		
 		//计算转速 Encode_Value3；由于采样间隔为1s，省略Encode_Value/1 计算
 		if(counter==50)
 		{
@@ -142,6 +149,13 @@ void TIM2_IRQHandler(void)//10ms 定时中断
 			time_cnt=0;
 			time_sum++;
 		}
+		if (turn_flag!=0)
+		{
+			MPU6050_GetData(&Ax,&Ay,&Az,&Gx,&Gy,&Gz);
+			MPU6050_data_processing();
+			Turn();
+		}
+		
 		TIM_ClearITPendingBit(TIM2, TIM_IT_Update);	
 	}
 	

@@ -1,7 +1,5 @@
 #include <motor.h>
 
-u8 Direction[4] = {1, 1, 1, 1};
-
 /**
  * @brief 初始化电机
  * @param void
@@ -45,7 +43,7 @@ void Motor_Speed(s8 motor, s16 speed)
 {
     if (motor >= 0 && motor <= 3)
     {
-        PWM_SetDutyCycle(motor + 1, speed);
+        PWM_SetDutyCycle(motor , speed);
     }
 }
 
@@ -60,7 +58,6 @@ void Motor_SetDirection(s8 motor, s8 direction)
     {
         return;
     }
-    Direction[motor] = direction;
     switch (motor)
     {
 
